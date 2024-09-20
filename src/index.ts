@@ -129,7 +129,7 @@ async function build(input: GHAInputs): Promise<void> {
       }
     } else {
       await exec(
-        'cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Ninja" -S . -B build',
+        'cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Unix Makefiles" -S . -B build',
         [],
         { cwd: input.path }
       )

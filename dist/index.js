@@ -28861,7 +28861,7 @@ async function build(input) {
             }
         }
         else {
-            await (0, exec_1.exec)('cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Ninja" -S . -B build', [], { cwd: input.path });
+            await (0, exec_1.exec)('cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Unix Makefiles" -S . -B build', [], { cwd: input.path });
             await (0, exec_1.exec)('cmake --build build', [], { cwd: input.path });
         }
     }

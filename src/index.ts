@@ -17,11 +17,12 @@ async function install(input: GHAInputs): Promise<void> {
       `git clone --no-checkout --depth 1 https://github.com/ccache/ccache ${input.path}`,
       []
     )
-    
+
     await exec(`git fetch --depth 1 --tags`, [], { cwd: input.path })
 
     const output = await getExecOutput('git tag --list', [], {
-      cwd: input.path
+      cwd: input.path,
+      silent: true
     })
 
     const availableVersions: semver.SemVer[] = []

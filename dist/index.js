@@ -28759,11 +28759,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const exec_1 = __nccwpck_require__(1514);
 const semver = __importStar(__nccwpck_require__(1383));
 const input_helper_1 = __nccwpck_require__(6455);
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const CCACHE_REPOSITORY = 'https://github.com/ccache/ccache';
 async function run() {
     const input = await (0, input_helper_1.getInputs)();
@@ -28771,6 +28775,8 @@ async function run() {
     await fetchRepository(input);
     const tags = await getAvailableTags(input);
     await checkoutRepository(input, tags);
+    await build(input);
+    await install(input);
 }
 async function cloneRepository(input) {
     try {
@@ -28828,7 +28834,36 @@ async function checkoutRepository(input, tags) {
         if (targetBranch === undefined) {
             throw new Error(`Could not find a branch that satisfy ${input.version}`);
         }
-        (0, exec_1.exec)('git checkout', ['-f', '--detach', targetBranch]);
+        await (0, exec_1.exec)('git checkout', ['-f', '--detach', targetBranch], {
+            cwd: input.path
+        });
+    }
+    finally {
+        core.endGroup();
+    }
+}
+async function build(input) {
+    try {
+        core.startGroup('Build ccache');
+        if (process.platform === 'win32') {
+            if (process.env['MSYSTEM'] === undefined) {
+                await (0, exec_1.exec)('cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build', [], { cwd: input.path });
+                await (0, exec_1.exec)('cmake --build build --config Release', [], {
+                    cwd: input.path
+                });
+            }
+            else {
+                await (0, exec_1.exec)('msys2', [
+                    '-c',
+                    'cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Ninja" -S . -B build'
+                ], { cwd: input.path });
+                await (0, exec_1.exec)('msys2', ['-c', 'cmake --build build'], { cwd: input.path });
+            }
+        }
+        else {
+            await (0, exec_1.exec)('cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Ninja" -S . -B build', [], { cwd: input.path });
+            await (0, exec_1.exec)('cmake --build build', [], { cwd: input.path });
+        }
     }
     finally {
         core.endGroup();
@@ -28837,6 +28872,20 @@ async function checkoutRepository(input, tags) {
 async function install(input) {
     try {
         core.startGroup('Install ccache');
+        if (process.platform === 'win32') {
+            if (process.env['MSYSTEM'] === undefined) {
+                await (0, exec_1.exec)('cmake --install build', [], { cwd: input.path });
+            }
+            else {
+                await (0, exec_1.exec)('msys2', ['-c', 'cmake --install build'], {
+                    cwd: input.path
+                });
+            }
+        }
+        else {
+            await (0, exec_1.exec)('cmake --install build', [], { cwd: input.path });
+        }
+        core.addPath(path_1.default.join(input.path, 'build', 'bin'));
     }
     finally {
         core.endGroup();

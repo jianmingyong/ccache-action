@@ -28764,27 +28764,79 @@ const core = __importStar(__nccwpck_require__(2186));
 const exec_1 = __nccwpck_require__(1514);
 const semver = __importStar(__nccwpck_require__(1383));
 const input_helper_1 = __nccwpck_require__(6455);
+const CCACHE_REPOSITORY = 'https://github.com/ccache/ccache';
 async function run() {
     const input = await (0, input_helper_1.getInputs)();
-    await install(input);
+    await cloneRepository(input);
+    await fetchRepository(input);
+    const tags = await getAvailableTags(input);
+    await checkoutRepository(input, tags);
+}
+async function cloneRepository(input) {
+    try {
+        core.startGroup('Cloning ccache repository');
+        await (0, exec_1.exec)('git clone', [
+            '--no-checkout',
+            '--depth=1',
+            CCACHE_REPOSITORY,
+            input.path
+        ]);
+    }
+    finally {
+        core.endGroup();
+    }
+}
+async function fetchRepository(input) {
+    try {
+        core.startGroup('Fetching ccache repository');
+        await (0, exec_1.exec)('git fetch', ['--depth=1', '--tags'], { cwd: input.path });
+    }
+    finally {
+        core.endGroup();
+    }
+}
+async function getAvailableTags(input) {
+    const availableVersions = {};
+    try {
+        core.startGroup('Getting available tags');
+        await (0, exec_1.exec)('git tag --list', [], {
+            cwd: input.path,
+            listeners: {
+                stdline: (data) => {
+                    const parsedVersion = semver.coerce(data, { loose: true });
+                    if (parsedVersion !== null) {
+                        availableVersions[data] = parsedVersion;
+                    }
+                }
+            }
+        });
+    }
+    finally {
+        core.endGroup();
+    }
+    return availableVersions;
+}
+async function checkoutRepository(input, tags) {
+    try {
+        core.startGroup('Checkout ccache');
+        const targetVersion = semver.maxSatisfying(Object.values(tags), input.version);
+        if (targetVersion === null) {
+            throw new Error(`Could not find a version that satisfy ${input.version}`);
+        }
+        core.info(`Selecting version ${targetVersion}`);
+        const targetBranch = Object.entries(tags).find(([, version]) => semver.eq(version, targetVersion))?.[0];
+        if (targetBranch === undefined) {
+            throw new Error(`Could not find a branch that satisfy ${input.version}`);
+        }
+        (0, exec_1.exec)('git checkout', ['-f', '--detach', targetBranch]);
+    }
+    finally {
+        core.endGroup();
+    }
 }
 async function install(input) {
     try {
         core.startGroup('Install ccache');
-        await (0, exec_1.exec)(`git clone --no-checkout --depth 1 https://github.com/ccache/ccache ${input.path}`, []);
-        await (0, exec_1.exec)(`git fetch --depth 1 --tags`, [], { cwd: input.path });
-        const output = await (0, exec_1.getExecOutput)('git tag --list', [], {
-            cwd: input.path
-        });
-        const availableVersions = [];
-        output.stdout.split('\n').forEach((value) => {
-            const parsedVersion = semver.coerce(value, { loose: true });
-            if (parsedVersion !== null) {
-                availableVersions.push(parsedVersion);
-            }
-        });
-        const targetVersion = semver.maxSatisfying(availableVersions, input.version);
-        core.info(`Found version ${targetVersion?.version} that satisfy ${input.version}`);
     }
     finally {
         core.endGroup();

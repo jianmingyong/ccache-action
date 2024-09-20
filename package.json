@@ -1,27 +1,25 @@
 {
-  "name": "typescript-action",
-  "description": "GitHub Actions TypeScript template",
-  "version": "0.0.0",
-  "author": "",
+  "name": "ccache-action",
+  "description": "GitHub Actions for ccache",
+  "version": "1.0.0",
+  "author": "Yong Jian Ming",
   "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "homepage": "https://github.com/jianmingyong/ccache-action",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/jianmingyong/ccache-action.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/jianmingyong/ccache-action/issues"
   },
   "keywords": [
-    "actions",
-    "node",
-    "setup"
+    "ccache"
   ],
   "exports": {
     ".": "./dist/index.js"
   },
   "engines": {
-    "node": ">=21"
+    "node": ">=20"
   },
   "scripts": {
     "bundle": "npm run format:write && npm run package",
@@ -32,7 +30,7 @@
     "lint": "npx eslint . -c ./.github/linters/.eslintrc.yml",
     "package": "npx ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "package:watch": "npm run package -- --watch",
-    "test": "npx jest",
+    "test": "npx jest --passWithNoTests",
     "all": "npm run format:write && npm run lint && npm run test && npm run coverage && npm run package"
   },
   "license": "MIT",
@@ -66,16 +64,20 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^1.10.1"
+    "@actions/cache": "^3.2.4",
+    "@actions/core": "^1.10.1",
+    "@actions/exec": "^1.1.1",
+    "semver": "^7.6.3"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
-    "@types/jest": "^29.5.12",
-    "@types/node": "^22.5.4",
-    "@typescript-eslint/eslint-plugin": "^8.4.0",
-    "@typescript-eslint/parser": "^8.4.0",
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.5.5",
+    "@types/semver": "^7.5.8",
+    "@typescript-eslint/eslint-plugin": "^8.6.0",
+    "@typescript-eslint/parser": "^8.6.0",
     "@vercel/ncc": "^0.38.1",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
     "eslint-plugin-jest": "^28.8.3",
     "eslint-plugin-jsonc": "^2.16.0",
     "eslint-plugin-prettier": "^5.2.1",
@@ -84,6 +86,6 @@
     "prettier": "^3.3.3",
     "prettier-eslint": "^16.3.0",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.2"
   }
 }

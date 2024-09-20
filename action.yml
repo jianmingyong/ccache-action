@@ -1,18 +1,24 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'ccache action'
+description: 'Install ccache and handle caching from GH'
+author: 'Yong Jian Ming'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: 'heart'
-  color: 'red'
+  icon: 'archive'
+  color: 'blue'
 
 # Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
-    required: true
-    default: '1000'
+  path:
+    description: 'Install ccache location. This is relative to github.workspace'
+    required: false
+    default: 'ccache'
+
+  version:
+    description:
+      'Target ccache version to install. Follows the semver range specification'
+    required: false
+    default: '*'
 
 # Define your outputs here.
 outputs:

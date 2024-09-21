@@ -2,29 +2,86 @@ name: 'ccache action'
 description: 'Install ccache and handle caching from GH'
 author: 'Yong Jian Ming'
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: 'archive'
   color: 'blue'
 
-# Define your inputs here.
 inputs:
   path:
-    description: 'Install ccache location. This is relative to github.workspace'
-    required: false
+    description:
+      'Location where ccache repository will be cloned if ccache is not
+      installed. This has to be relative to github.workspace.'
     default: 'ccache'
 
   version:
     description:
-      'Target ccache version to install. Follows the semver range specification'
-    required: false
+      'Target ccache version to install. Follows the semver range specification.
+      Defaults to latest version.'
     default: '*'
 
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
+  binary-cache-key:
+    description:
+      'Target key prefix to use for caching ccache binary. This is not for the
+      ccache caches.'
+    default: 'ccache_binary'
+
+  # This is where all the ccache related options
+  cache-dir:
+    description:
+      'This option specifies where ccache will keep its cached compiler outputs.'
+    default: '.ccache'
+
+  compiler-check:
+    description:
+      'By default, ccache includes the modification time (“mtime”) and size of
+      the compiler in the hash to ensure that results retrieved from the cache
+      are accurate. If compiler plugins are used, these plugins will also be
+      added to the hash. This option can be used to select another strategy.'
+    default: 'mtime'
+
+  compression:
+    description:
+      'If true, ccache will compress data it puts in the cache. However, this
+      option has no effect on how files are retrieved from the cache; compressed
+      and uncompressed results will still be usable regardless of this option.
+      The default is true. Compression is done using the Zstandard algorithm.
+      The algorithm is fast enough that there should be little reason to turn
+      off compression to gain performance. One exception is if the cache is
+      located on a compressed file system, in which case the compression
+      performed by ccache of course is redundant.'
+    default: 'true'
+
+  compression-level:
+    description:
+      'This option determines the level at which ccache will compress object
+      files using the real-time compression algorithm Zstandard. It only has
+      effect if compression is enabled (which it is by default). Zstandard is
+      extremely fast for decompression and very fast for compression for lower
+      compression levels. The default is 0.'
+    default: '0'
+
+  max-files:
+    description:
+      'This option specifies the maximum number of files to keep in the cache.
+      Use 0 for no limit (which is the default).'
+    default: '0'
+
+  max-size:
+    description:
+      'This option specifies the maximum size of the cache. Use 0 for no limit.
+      The default value is 5G. Available suffixes: k, M, G, T (decimal) and Ki,
+      Mi, Gi, Ti (binary). The default suffix is G.'
+    default: '500M'
+
+  sloppiness:
+    description:
+      'By default, ccache tries to give as few false cache hits as possible.
+      However, in certain situations it’s possible that you know things that
+      ccache can’t take for granted. This option makes it possible to tell
+      ccache to relax some checks in order to increase the hit rate.'
+    default: 'time_macros'
 
 runs:
   using: node20
   main: dist/index.js
+  post: dist/index.js

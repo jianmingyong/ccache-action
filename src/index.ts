@@ -1,9 +1,13 @@
-import * as core from '@actions/core'
+import path from 'path'
+import os from 'os'
+
+import cache from '@actions/cache'
+import core from '@actions/core'
 import { exec } from '@actions/exec'
-import * as semver from 'semver'
+import io from '@actions/io'
+import semver from 'semver'
 
 import { GHAInputs, getInputs } from './input-helper'
-import path from 'path'
 
 const CCACHE_REPOSITORY = 'https://github.com/ccache/ccache'
 
@@ -11,6 +15,8 @@ type CCacheVersion = Record<string, semver.SemVer>
 
 async function run(): Promise<void> {
   const input = await getInputs()
+
+  await dependenciesCheck(input)
   await cloneRepository(input)
   await fetchRepository(input)
   const tags = await getAvailableTags(input)
@@ -19,38 +25,38 @@ async function run(): Promise<void> {
   await install(input)
 }
 
-async function cloneRepository(input: GHAInputs): Promise<void> {
-  try {
-    core.startGroup('Cloning ccache repository')
+async function dependenciesCheck(input: GHAInputs): Promise<void> {
+  await core.group('Checking ccache action dependencies', async () => {
+    const gitPath = await io.which('git', true)
+    core.info(`Found git: ${gitPath}`)
 
+    const cmakePath = await io.which('cmake', true)
+    core.info(`Found cmake: ${cmakePath}`)
+  })
+}
+
+async function cloneRepository(input: GHAInputs): Promise<void> {
+  await core.group('Cloning ccache repository', async () => {
     await exec('git clone', [
       '--no-checkout',
       '--depth=1',
       CCACHE_REPOSITORY,
       input.path
     ])
-  } finally {
-    core.endGroup()
-  }
+  })
 }
 
 async function fetchRepository(input: GHAInputs): Promise<void> {
-  try {
-    core.startGroup('Fetching ccache repository')
-
+  await core.group('Fetching ccache repository', async () => {
     await exec('git fetch', ['--depth=1', '--tags'], { cwd: input.path })
-  } finally {
-    core.endGroup()
-  }
+  })
 }
 
 async function getAvailableTags(input: GHAInputs): Promise<CCacheVersion> {
-  const availableVersions: CCacheVersion = {}
+  return await core.group('Getting available tags', async () => {
+    const availableVersions: CCacheVersion = {}
 
-  try {
-    core.startGroup('Getting available tags')
-
-    await exec('git tag --list', [], {
+    await exec('git tag', ['--list'], {
       cwd: input.path,
       listeners: {
         stdline: (data: string) => {
@@ -61,20 +67,16 @@ async function getAvailableTags(input: GHAInputs): Promise<CCacheVersion> {
         }
       }
     })
-  } finally {
-    core.endGroup()
-  }
 
-  return availableVersions
+    return availableVersions
+  })
 }
 
 async function checkoutRepository(
   input: GHAInputs,
   tags: CCacheVersion
 ): Promise<void> {
-  try {
-    core.startGroup('Checkout ccache')
-
+  await core.group('Checkout ccache', async () => {
     const targetVersion = semver.maxSatisfying(
       Object.values(tags),
       input.version
@@ -97,69 +99,90 @@ async function checkoutRepository(
     await exec('git checkout', ['-f', '--detach', targetBranch], {
       cwd: input.path
     })
-  } finally {
-    core.endGroup()
-  }
+  })
 }
 
 async function build(input: GHAInputs): Promise<void> {
-  try {
-    core.startGroup('Build ccache')
+  await core.group('Build ccache', async () => {
+    const defaultConfigureOptions =
+      '-D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF'
 
     if (process.platform === 'win32') {
       if (process.env['MSYSTEM'] === undefined) {
         await exec(
-          'cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build',
+          `cmake ${defaultConfigureOptions} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`,
           [],
           { cwd: input.path }
         )
-        await exec('cmake --build build --config Release', [], {
-          cwd: input.path
-        })
+        await exec(
+          `cmake --build build --config Release -j ${os.availableParallelism()}`,
+          [],
+          {
+            cwd: input.path
+          }
+        )
       } else {
         await exec(
           'msys2',
           [
             '-c',
-            'cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Ninja" -S . -B build'
+            `cmake ${defaultConfigureOptions} -G "MSYS Makefiles" -S . -B build`
           ],
           { cwd: input.path }
         )
-        await exec('msys2', ['-c', 'cmake --build build'], { cwd: input.path })
+        await exec(
+          'msys2',
+          ['-c', `cmake --build build -j ${os.availableParallelism()}`],
+          { cwd: input.path }
+        )
       }
     } else {
       await exec(
-        'cmake -D CMAKE_BUILD_TYPE=Release -D ENABLE_TESTING=OFF -D REDIS_STORAGE_BACKEND=OFF -D CMAKE_INSTALL_PREFIX=build -G "Unix Makefiles" -S . -B build',
+        `cmake ${defaultConfigureOptions} -G "Unix Makefiles" -S . -B build`,
         [],
         { cwd: input.path }
       )
-      await exec('cmake --build build', [], { cwd: input.path })
+      await exec(`cmake --build build -j ${os.availableParallelism()}`, [], {
+        cwd: input.path
+      })
     }
-  } finally {
-    core.endGroup()
-  }
+  })
 }
 
 async function install(input: GHAInputs): Promise<void> {
-  try {
-    core.startGroup('Install ccache')
-
+  await core.group('Install ccache', async () => {
     if (process.platform === 'win32') {
       if (process.env['MSYSTEM'] === undefined) {
-        await exec('cmake --install build', [], { cwd: input.path })
+        await exec(
+          'cmake --install build --config Release --prefix build/install',
+          [],
+          { cwd: input.path }
+        )
       } else {
-        await exec('msys2', ['-c', 'cmake --install build'], {
-          cwd: input.path
-        })
+        await exec(
+          'msys2',
+          ['-c', 'cmake --install build --prefix build/install'],
+          {
+            cwd: input.path
+          }
+        )
       }
     } else {
-      await exec('cmake --install build', [], { cwd: input.path })
+      await exec('cmake --install build --prefix build/install', [], {
+        cwd: input.path
+      })
     }
 
-    core.addPath(path.join(input.path, 'build', 'bin'))
-  } finally {
-    core.endGroup()
-  }
+    core.addPath(path.join(input.path, 'build', 'install', 'bin'))
+  })
+}
+
+async function cacheBinary(input: GHAInputs): Promise<void> {
+  await core.group('Storing binary in cache', async () => {
+    if (cache.isFeatureAvailable()) {
+      await cache.saveCache([path.join(input.path, 'build', 'install')], '')
+    }
+  })
 }
 
 run().catch(reason => {

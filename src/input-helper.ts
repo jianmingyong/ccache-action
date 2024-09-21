@@ -1,8 +1,8 @@
-import * as path from 'path'
-import * as process from 'process'
+import path from 'path'
+import process from 'process'
 
-import * as core from '@actions/core'
-import * as semver from 'semver'
+import core from '@actions/core'
+import semver from 'semver'
 
 import { directoryExists } from './fs-helper'
 

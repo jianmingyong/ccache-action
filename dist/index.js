@@ -66708,11 +66708,12 @@ const exec_1 = __nccwpck_require__(1514);
 async function restoreBinaryCache(installPath, restoreKeyPrefix, version) {
     try {
         if (cache.isFeatureAvailable()) {
-            const key = await cache.restoreCache([installPath], `${restoreKeyPrefix}_${os.platform()}_${version}`);
-            if (key) {
+            const key = await cache.restoreCache([installPath], `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`);
+            if (key !== undefined) {
                 core.addPath(installPath);
                 const code = await (0, exec_1.exec)('ccache', ['--version'], {
-                    ignoreReturnCode: true
+                    ignoreReturnCode: true,
+                    silent: true
                 });
                 return code === 0;
             }
@@ -66726,7 +66727,7 @@ async function restoreBinaryCache(installPath, restoreKeyPrefix, version) {
 async function saveBinaryCache(installPath, restoreKeyPrefix, version) {
     try {
         if (cache.isFeatureAvailable()) {
-            return await cache.saveCache([installPath], `${restoreKeyPrefix}_${os.platform()}_${version}`);
+            return await cache.saveCache([installPath], `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`);
         }
         return null;
     }
@@ -66958,14 +66959,16 @@ async function run() {
     }
     // Configure Ccache step.
     await core.group('CCache Version', () => (0, exec_1.exec)('ccache --version'));
-    await core.group('Configure Ccache', async () => {
-        core.exportVariable('CCACHE_DIR', input.ccacheDir);
-        core.exportVariable('CCACHE_COMPILERCHECK', input.compilerCheck);
-        core.exportVariable(input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS', '');
-        core.exportVariable('CCACHE_COMPRESSLEVEL', input.compressionLevel.toString());
-        core.exportVariable('CCACHE_MAXFILES', input.maxFiles.toString());
-        core.exportVariable('CCACHE_MAXSIZE', input.maxSize);
-        core.exportVariable('CCACHE_SLOPPINESS', input.sloppiness);
+    await core.group('Configure Ccache', () => {
+        return new Promise(() => {
+            core.exportVariable('CCACHE_DIR', input.ccacheDir);
+            core.exportVariable('CCACHE_COMPILERCHECK', input.compilerCheck);
+            core.exportVariable(input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS', '');
+            core.exportVariable('CCACHE_COMPRESSLEVEL', input.compressionLevel.toString());
+            core.exportVariable('CCACHE_MAXFILES', input.maxFiles.toString());
+            core.exportVariable('CCACHE_MAXSIZE', input.maxSize);
+            core.exportVariable('CCACHE_SLOPPINESS', input.sloppiness);
+        });
     });
     core.saveState('isPost', 'true');
     core.saveState('ccacheDir', input.ccacheDir);
@@ -66979,7 +66982,7 @@ function findVersion(tags, range) {
     });
     const version = semver.maxSatisfying(versions.map(v => v.version), range);
     if (version === null) {
-        throw new Error(`Could not find a version that satisfy ${range}`);
+        throw new Error(`Could not find a version that satisfy ${range?.range ?? range}`);
     }
     return versions.find((v) => semver.eq(v.version, version));
 }
@@ -66994,7 +66997,7 @@ async function downloadTool(binary, version, downloadPath, installPath) {
         else if (binary.fileType === 'tar') {
             await tc.extractTar(file, extractPath, 'x');
         }
-        io.mv(path.join(extractPath, binary.pathToBinary(version)), installPath);
+        await io.mv(path.join(extractPath, binary.pathToBinary(version)), installPath);
         core.addPath(installPath);
         const code = await (0, exec_1.exec)('ccache', ['--version'], {
             ignoreReturnCode: true
@@ -67006,7 +67009,7 @@ async function downloadTool(binary, version, downloadPath, installPath) {
     }
 }
 run().catch(reason => {
-    core.setFailed(reason);
+    core.setFailed(reason?.message ?? reason);
 });
 
 

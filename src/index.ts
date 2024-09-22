@@ -196,7 +196,9 @@ function findVersion(
   )
 
   if (version === null) {
-    throw new Error(`Could not find a version that satisfy ${(range as semver.Range)?.range ?? range}`)
+    throw new Error(
+      `Could not find a version that satisfy ${(range as semver.Range)?.range ?? range}`
+    )
   }
 
   return versions.find((v: CCacheVersion) => semver.eq(v.version, version))!
@@ -220,7 +222,10 @@ async function downloadTool(
       await tc.extractTar(file, extractPath, 'x')
     }
 
-    await io.mv(path.join(extractPath, binary.pathToBinary(version)), installPath)
+    await io.mv(
+      path.join(extractPath, binary.pathToBinary(version)),
+      installPath
+    )
     core.addPath(installPath)
 
     const code = await exec('ccache', ['--version'], {

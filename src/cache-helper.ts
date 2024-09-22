@@ -21,8 +21,6 @@ export async function restoreBinaryCache(
           ignoreReturnCode: true
         })
 
-        core.info(`ccache returned ${code}`)
-
         return code === 0
       }
     }

@@ -60,8 +60,8 @@ async function install(input: GHAInputs) {
   let hasInstalled = false
   const installPath = path.join(input.path, 'install', 'bin')
 
-  await core.group('Restore Binary Cache', async () => {
-    hasInstalled = await restoreBinaryCache(
+  hasInstalled = await core.group('Restore Binary Cache', () => {
+    return restoreBinaryCache(
       installPath,
       input.ccacheBinaryKeyPrefix,
       ccacheVersion.version.version

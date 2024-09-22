@@ -66715,7 +66715,6 @@ async function restoreBinaryCache(installPath, restoreKeyPrefix, version) {
                 const code = await (0, exec_1.exec)('ccache', ['--version'], {
                     ignoreReturnCode: true
                 });
-                core.info(`ccache returned ${code}`);
                 return code === 0;
             }
         }
@@ -66915,8 +66914,8 @@ async function install(input) {
     const ccacheVersion = findVersion(tags, input.version);
     let hasInstalled = false;
     const installPath = path.join(input.path, 'install', 'bin');
-    await core.group('Restore Binary Cache', async () => {
-        hasInstalled = await (0, cache_helper_1.restoreBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
+    hasInstalled = await core.group('Restore Binary Cache', () => {
+        return (0, cache_helper_1.restoreBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
     });
     if (input.installType === 'binary') {
         await core.group('Download Binary', async () => {

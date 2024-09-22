@@ -10,7 +10,6 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
-  eslintConfigPrettier,
   {
     languageOptions: {
       globals: globals.node,
@@ -26,5 +25,6 @@ export default tseslint.config(
   {
     files: ['__test__/**/*.ts'],
     ...eslintPluginJest['flat/recommended']
-  }
+  },
+  eslintConfigPrettier,
 )

@@ -11,17 +11,19 @@ export async function restoreBinaryCache(
 ): Promise<boolean> {
   try {
     if (cache.isFeatureAvailable()) {
-      const key = await cache.restoreCache(
-        [installPath],
-        `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
-      )
+      const restoryKey = `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
+      const key = await cache.restoreCache([installPath], restoryKey)
 
-      if (key !== undefined) {
+      if (key === restoryKey) {
         core.addPath(installPath)
 
         const code = await exec('ccache', ['--version'], {
           ignoreReturnCode: true,
-          silent: true
+          listeners: {
+            stdout: (data: Buffer) => {
+              data.toString()
+            }
+          }
         })
 
         return code === 0

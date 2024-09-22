@@ -13,8 +13,7 @@ export default tseslint.config(
   {
     languageOptions: {
       globals: {
-        ...globals.node,
-        ...globals.jest
+        ...globals.node
       },
       parserOptions: {
         project: '.github/linters/tsconfig.json'
@@ -26,8 +25,14 @@ export default tseslint.config(
     ...tseslint.configs.disableTypeChecked
   },
   {
-    files: ['__test__/**/*.ts'],
-    ...eslintPluginJest['flat/recommended']
+    files: ['__test__/**'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.jest
+      },
+    },
+    ...eslintPluginJest.configs['flat/recommended']
   },
   eslintConfigPrettier
 )

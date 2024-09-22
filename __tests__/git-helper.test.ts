@@ -1,4 +1,5 @@
 import * as exec from '@actions/exec'
+import { jest, describe, beforeEach, it } from '@jest/globals'
 
 import * as git from '../src/git-helper'
 
@@ -8,7 +9,7 @@ describe('git-helper.ts', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
-    execMock = jest.spyOn(exec, 'exec').mockImplementation()
+    execMock = jest.spyOn(exec, 'exec')
   })
 
   it('clone', async () => {

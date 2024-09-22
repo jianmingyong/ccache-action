@@ -66713,13 +66713,9 @@ async function restoreBinaryCache(installPath, restoreKeyPrefix, version) {
             if (key === restoryKey) {
                 core.addPath(installPath);
                 const code = await (0, exec_1.exec)('ccache', ['--version'], {
-                    ignoreReturnCode: true,
-                    listeners: {
-                        stdout: (data) => {
-                            data.toString();
-                        }
-                    }
+                    ignoreReturnCode: true
                 });
+                core.info(`ccache returned ${code}`);
                 return code === 0;
             }
         }

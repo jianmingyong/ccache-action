@@ -18,13 +18,10 @@ export async function restoreBinaryCache(
         core.addPath(installPath)
 
         const code = await exec('ccache', ['--version'], {
-          ignoreReturnCode: true,
-          listeners: {
-            stdout: (data: Buffer) => {
-              data.toString()
-            }
-          }
+          ignoreReturnCode: true
         })
+
+        core.info(`ccache returned ${code}`)
 
         return code === 0
       }

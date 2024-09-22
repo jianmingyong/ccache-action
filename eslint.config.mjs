@@ -8,6 +8,9 @@ export default tseslint.config(
   {
     ignores: ['lib/', 'dist/', 'node_modules/', 'coverage/']
   },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  eslintConfigPrettier,
   {
     languageOptions: {
       globals: globals.node,
@@ -21,10 +24,7 @@ export default tseslint.config(
     ...tseslint.configs.disableTypeChecked
   },
   {
-    files: ['__tests__/**'],
+    files: ['__test__/**/*.ts'],
     ...eslintPluginJest['flat/recommended']
-  },
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  eslintConfigPrettier
+  }
 )

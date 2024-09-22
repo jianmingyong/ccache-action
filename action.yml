@@ -9,21 +9,34 @@ branding:
 inputs:
   path:
     description:
-      'Location where ccache repository will be cloned if ccache is not
-      installed. This has to be relative to github.workspace.'
+      'Location where ccache repository will be cloned if ccache is set to
+      install. This has to be relative to github.workspace. (string)'
     default: 'ccache'
 
   version:
     description:
       'Target ccache version to install. Follows the semver range specification.
-      Defaults to latest version.'
+      Defaults to latest version. (string)'
     default: '*'
 
-  binary-cache-key:
+  install:
+    description: 'Whether to install ccache first. (boolean)'
+    default: 'true'
+
+  install-type:
     description:
-      'Target key prefix to use for caching ccache binary. This is not for the
-      ccache caches.'
+      'Installation type: binary or source. By using binary, it will download
+      from GH Releases instead of compiling from source. If binary is not
+      available, it will fall back to source. (string: binary | source)'
+    default: 'binary'
+
+  ccache-binary-key-prefix:
+    description: 'Target key prefix to use for restoring/saving ccache binary.'
     default: 'ccache_binary'
+
+  ccache-key-prefix:
+    description: 'Target key prefix to use for restoring/saving ccache caches.'
+    default: 'ccache_cache'
 
   # This is where all the ccache related options
   cache-dir:
@@ -75,13 +88,12 @@ inputs:
 
   sloppiness:
     description:
-      'By default, ccache tries to give as few false cache hits as possible.
-      However, in certain situations it’s possible that you know things that
-      ccache can’t take for granted. This option makes it possible to tell
-      ccache to relax some checks in order to increase the hit rate.'
+      "By default, ccache tries to give as few false cache hits as possible.
+      However, in certain situations it's possible that you know things that
+      ccache can't take for granted. This option makes it possible to tell
+      ccache to relax some checks in order to increase the hit rate."
     default: 'time_macros'
 
 runs:
   using: node20
   main: dist/index.js
-  post: dist/index.js

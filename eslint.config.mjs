@@ -26,13 +26,13 @@ export default tseslint.config(
   },
   {
     files: ['__test__/**'],
+    ...eslintPluginJest.configs['flat/recommended'],
     languageOptions: {
       globals: {
         ...globals.node,
         ...globals.jest
       }
-    },
-    ...eslintPluginJest.configs['flat/recommended']
+    }
   },
   eslintConfigPrettier
 )

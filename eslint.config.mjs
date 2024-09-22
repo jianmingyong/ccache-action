@@ -14,7 +14,7 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.jest,
+        ...globals.jest
       },
       parserOptions: {
         project: '.github/linters/tsconfig.json'
@@ -29,5 +29,5 @@ export default tseslint.config(
     files: ['__test__/**/*.ts'],
     ...eslintPluginJest['flat/recommended']
   },
-  eslintConfigPrettier,
+  eslintConfigPrettier
 )

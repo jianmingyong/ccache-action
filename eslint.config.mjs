@@ -12,7 +12,10 @@ export default tseslint.config(
   ...tseslint.configs.recommendedTypeChecked,
   {
     languageOptions: {
-      globals: globals.node,
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
       parserOptions: {
         project: '.github/linters/tsconfig.json'
       }

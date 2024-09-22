@@ -30,7 +30,7 @@ export default tseslint.config(
       globals: {
         ...globals.node,
         ...globals.jest
-      },
+      }
     },
     ...eslintPluginJest.configs['flat/recommended']
   },

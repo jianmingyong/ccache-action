@@ -31,11 +31,15 @@ inputs:
     default: 'binary'
 
   ccache-binary-key-prefix:
-    description: 'Target key prefix to use for restoring/saving ccache binary.'
+    description:
+      'Target key prefix to use for restoring/saving ccache binary. It will
+      append the prefix with os, arch, and version to form the key.'
     default: 'ccache_binary'
 
   ccache-key-prefix:
-    description: 'Target key prefix to use for restoring/saving ccache caches.'
+    description:
+      'Target key prefix to use for restoring/saving ccache caches. You will
+      need to take care of sharing keys per matrix.'
     default: 'ccache_cache'
 
   # This is where all the ccache related options

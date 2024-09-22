@@ -13,14 +13,15 @@ export async function restoreBinaryCache(
     if (cache.isFeatureAvailable()) {
       const key = await cache.restoreCache(
         [installPath],
-        `${restoreKeyPrefix}_${os.platform()}_${version}`
+        `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
       )
 
-      if (key) {
+      if (key !== undefined) {
         core.addPath(installPath)
 
         const code = await exec('ccache', ['--version'], {
-          ignoreReturnCode: true
+          ignoreReturnCode: true,
+          silent: true
         })
 
         return code === 0
@@ -42,7 +43,7 @@ export async function saveBinaryCache(
     if (cache.isFeatureAvailable()) {
       return await cache.saveCache(
         [installPath],
-        `${restoreKeyPrefix}_${os.platform()}_${version}`
+        `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
       )
     }
     return null

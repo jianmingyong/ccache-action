@@ -66704,19 +66704,12 @@ exports.saveBinaryCache = saveBinaryCache;
 const os = __importStar(__nccwpck_require__(2037));
 const cache = __importStar(__nccwpck_require__(7799));
 const core = __importStar(__nccwpck_require__(2186));
-const exec_1 = __nccwpck_require__(1514);
 async function restoreBinaryCache(installPath, restoreKeyPrefix, version) {
     try {
         if (cache.isFeatureAvailable()) {
-            const restoryKey = `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`;
-            const key = await cache.restoreCache([installPath], restoryKey);
-            if (key === restoryKey) {
-                core.addPath(installPath);
-                const code = await (0, exec_1.exec)('ccache', ['--version'], {
-                    ignoreReturnCode: true
-                });
-                return code === 0;
-            }
+            const restoreKey = `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`;
+            const key = await cache.restoreCache([installPath], restoreKey);
+            return key === restoreKey;
         }
         return false;
     }
@@ -66727,13 +66720,40 @@ async function restoreBinaryCache(installPath, restoreKeyPrefix, version) {
 async function saveBinaryCache(installPath, restoreKeyPrefix, version) {
     try {
         if (cache.isFeatureAvailable()) {
-            return await cache.saveCache([installPath], `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`);
+            await cache.saveCache([installPath], `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`);
         }
-        return null;
     }
     catch {
-        return null;
+        core.warning('Unable to save binary cache.');
     }
+}
+
+
+/***/ }),
+
+/***/ 3056:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.testRun = testRun;
+const path_1 = __nccwpck_require__(1017);
+const exec_1 = __nccwpck_require__(1514);
+async function testRun(path) {
+    let returnCode;
+    if (path === undefined) {
+        returnCode = await (0, exec_1.exec)('ccache', ['--version'], {
+            ignoreReturnCode: true
+        });
+    }
+    else {
+        returnCode = await (0, exec_1.exec)(`.${path_1.sep}ccache`, ['--version'], {
+            cwd: path,
+            ignoreReturnCode: true
+        });
+    }
+    return returnCode === 0;
 }
 
 
@@ -66881,6 +66901,7 @@ const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
 const semver = __importStar(__nccwpck_require__(1383));
 const cache_helper_1 = __nccwpck_require__(8109);
+const ccache_helper_1 = __nccwpck_require__(3056);
 const constants_1 = __nccwpck_require__(581);
 const git = __importStar(__nccwpck_require__(1107));
 const input_helper_1 = __nccwpck_require__(6455);
@@ -66889,8 +66910,6 @@ async function run() {
     if (input.install) {
         await install(input);
     }
-    // Configure Ccache step.
-    await core.group('CCache Version', () => (0, exec_1.exec)('ccache --version'));
     await core.group('Configure Ccache', () => {
         return new Promise(() => {
             core.exportVariable('CCACHE_DIR', input.ccacheDir);
@@ -66900,6 +66919,7 @@ async function run() {
             core.exportVariable('CCACHE_MAXFILES', input.maxFiles.toString());
             core.exportVariable('CCACHE_MAXSIZE', input.maxSize);
             core.exportVariable('CCACHE_SLOPPINESS', input.sloppiness);
+            core.info('Configure Completed.');
         });
     });
     core.saveState('isPost', 'true');
@@ -66912,13 +66932,18 @@ async function install(input) {
     await core.group('Fetch Repository', () => git.fetch(input.path));
     const tags = await core.group('Get Tag List', () => git.tagList(input.path));
     const ccacheVersion = findVersion(tags, input.version);
-    let hasInstalled = false;
     const installPath = path.join(input.path, 'install', 'bin');
-    hasInstalled = await core.group('Restore Binary Cache', () => {
-        return (0, cache_helper_1.restoreBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
+    const cacheHit = await core.group('Restore Binary Cache', async () => {
+        return await (0, cache_helper_1.restoreBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
     });
+    if (cacheHit) {
+        if (await postInstall(input, ccacheVersion, installPath)) {
+            return;
+        }
+    }
+    // If restore fails or the restored binary was not working procceed to install step
     if (input.installType === 'binary') {
-        await core.group('Download Binary', async () => {
+        const downloadHit = await core.group('Download Binary', async () => {
             const matrix = constants_1.CCACHE_BINARY_SUPPORTED_URL[os.platform()];
             if (matrix) {
                 let targetBinary;
@@ -66929,54 +66954,69 @@ async function install(input) {
                     }
                 }
                 if (targetBinary) {
-                    hasInstalled = await downloadTool(targetBinary, ccacheVersion.version.version, input.path, installPath);
+                    return await downloadTool(targetBinary, ccacheVersion.version.version, input.path, installPath);
                 }
             }
+            return false;
         });
+        if (downloadHit) {
+            if (await postInstall(input, ccacheVersion, installPath)) {
+                return;
+            }
+        }
     }
-    if (!hasInstalled) {
-        // Fail to restore or download, fall back to compile from source.
-        await core.group('Checkout Binary', () => git.checkout(input.path, ccacheVersion.tag));
-        await core.group('Build ccache', async () => {
-            if (process.platform === 'win32') {
-                if (process.env['MSYSTEM']) {
-                    await (0, exec_1.exec)('msys2', [
-                        '-c',
-                        `cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "MSYS Makefiles" -S . -B build`
-                    ], { cwd: input.path });
-                    await (0, exec_1.exec)('msys2', ['-c', `cmake --build build -j ${os.availableParallelism()}`], { cwd: input.path });
-                }
-                else {
-                    await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`, [], { cwd: input.path });
-                    await (0, exec_1.exec)(`cmake --build build --config Release -j ${os.availableParallelism()}`, [], { cwd: input.path });
-                }
+    // Fail to restore or download, fall back to compile from source.
+    await core.group('Checkout Binary', () => git.checkout(input.path, ccacheVersion.tag));
+    await core.group('Build ccache', async () => {
+        if (process.platform === 'win32') {
+            if (process.env['MSYSTEM']) {
+                await (0, exec_1.exec)('msys2', [
+                    '-c',
+                    `cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "MSYS Makefiles" -S . -B build`
+                ], { cwd: input.path });
+                await (0, exec_1.exec)('msys2', ['-c', `cmake --build build -j ${os.availableParallelism()}`], { cwd: input.path });
             }
             else {
-                await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Unix Makefiles" -S . -B build`, [], { cwd: input.path });
-                await (0, exec_1.exec)(`cmake --build build -j ${os.availableParallelism()}`, [], {
-                    cwd: input.path
-                });
+                await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`, [], { cwd: input.path });
+                await (0, exec_1.exec)(`cmake --build build --config Release -j ${os.availableParallelism()}`, [], { cwd: input.path });
             }
-        });
-        await core.group('Install ccache', async () => {
-            const installPrefix = path.join(input.path, 'install');
-            if (process.platform === 'win32') {
-                if (process.env['MSYSTEM']) {
-                    await (0, exec_1.exec)('msys2', ['-c', `cmake --install build --prefix ${installPrefix}`], { cwd: input.path });
-                }
-                else {
-                    await (0, exec_1.exec)(`cmake --install build --config Release --prefix ${installPrefix}`, [], { cwd: input.path });
-                }
+        }
+        else {
+            await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Unix Makefiles" -S . -B build`, [], { cwd: input.path });
+            await (0, exec_1.exec)(`cmake --build build -j ${os.availableParallelism()}`, [], {
+                cwd: input.path
+            });
+        }
+    });
+    await core.group('Install ccache', async () => {
+        const installPrefix = path.join(input.path, 'install');
+        if (process.platform === 'win32') {
+            if (process.env['MSYSTEM']) {
+                await (0, exec_1.exec)('msys2', ['-c', `cmake --install build --prefix ${installPrefix}`], { cwd: input.path });
             }
             else {
-                await (0, exec_1.exec)(`cmake --install build --prefix ${installPrefix}`, [], {
-                    cwd: input.path
-                });
+                await (0, exec_1.exec)(`cmake --install build --config Release --prefix ${installPrefix}`, [], { cwd: input.path });
             }
-            core.addPath(path.join(installPrefix, 'bin'));
-        });
+        }
+        else {
+            await (0, exec_1.exec)(`cmake --install build --prefix ${installPrefix}`, [], {
+                cwd: input.path
+            });
+        }
+    });
+    await postInstall(input, ccacheVersion, installPath, true);
+}
+async function postInstall(input, ccacheVersion, installPath, throwError) {
+    const working = await core.group('Test ccache', () => (0, ccache_helper_1.testRun)(installPath));
+    if (working) {
+        core.addPath(installPath);
+        await core.group('Save Binary Cache', () => (0, cache_helper_1.saveBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version));
+        return true;
     }
-    await core.group('Save Binary Cache', () => (0, cache_helper_1.saveBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version));
+    if (throwError) {
+        throw new Error('ccache is not working after compilation. Try downgrading if problem persist.');
+    }
+    return false;
 }
 function findVersion(tags, range) {
     const versions = [];
@@ -67003,11 +67043,7 @@ async function downloadTool(binary, version, downloadPath, installPath) {
             await tc.extractTar(file, extractPath, 'x');
         }
         await io.mv(path.join(extractPath, binary.pathToBinary(version)), installPath);
-        core.addPath(installPath);
-        const code = await (0, exec_1.exec)('ccache', ['--version'], {
-            ignoreReturnCode: true
-        });
-        return code === 0;
+        return true;
     }
     catch {
         return false;

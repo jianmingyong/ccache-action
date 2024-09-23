@@ -67030,7 +67030,7 @@ function findVersion(tags, range) {
 async function downloadTool(binary, version, downloadPath, installPath) {
     try {
         const extractPath = path.join(downloadPath, 'extract');
-        const file = await tc.downloadTool(binary.url(version), downloadPath);
+        const file = await tc.downloadTool(binary.url(version));
         if (binary.fileType === 'zip') {
             await tc.extractZip(file, extractPath);
         }

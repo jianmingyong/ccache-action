@@ -72692,10 +72692,10 @@ async function postAction(state) {
     }
     const restoreKey = `${state.ccacheKeyPrefix}_${outputHash}`;
     if (restoreKey !== state.restoreKey) {
-        if (state.ghToken !== '') {
+        if (state.ghToken !== '' && state.restoreKey !== '') {
             await core.group('Delete old cache', async () => {
-                await (0, cache_helper_1.deleteCache)(state.ghToken, restoreKey);
-                core.info(`Deleted cache with key: ${restoreKey}`);
+                await (0, cache_helper_1.deleteCache)(state.ghToken, state.restoreKey);
+                core.info(`Deleted cache with key: ${state.restoreKey}`);
             });
         }
         await core.group('Saving cache', async () => {

@@ -272,10 +272,10 @@ async function postAction(state: GHAStates) {
   const restoreKey = `${state.ccacheKeyPrefix}_${outputHash}`
 
   if (restoreKey !== state.restoreKey) {
-    if (state.ghToken !== '') {
+    if (state.ghToken !== '' && state.restoreKey !== '') {
       await core.group('Delete old cache', async () => {
-        await deleteCache(state.ghToken, restoreKey)
-        core.info(`Deleted cache with key: ${restoreKey}`)
+        await deleteCache(state.ghToken, state.restoreKey)
+        core.info(`Deleted cache with key: ${state.restoreKey}`)
       })
     }
 

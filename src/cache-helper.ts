@@ -14,7 +14,6 @@ export async function restoreBinaryCache(
       const key = await cache.restoreCache([installPath], restoreKey)
       return key === restoreKey
     }
-
     return false
   } catch {
     return false

@@ -1,10 +1,10 @@
 import eslint from '@eslint/js'
-import eslintConfigPrettier from 'eslint-config-prettier'
-import eslintPluginJest from 'eslint-plugin-jest'
+import prettier from 'eslint-config-prettier'
+import jest from 'eslint-plugin-jest'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default [
   {
     ignores: ['lib/', 'dist/', 'node_modules/', 'coverage/']
   },
@@ -21,18 +21,12 @@ export default tseslint.config(
     }
   },
   {
-    files: ['**/*.{js,cjs,mjs}'],
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     ...tseslint.configs.disableTypeChecked
   },
   {
-    files: ['__test__/**'],
-    ...eslintPluginJest.configs['flat/recommended'],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-        ...globals.jest
-      }
-    }
+    files: ['__tests__/**'],
+    ...jest.configs['flat/recommended']
   },
-  eslintConfigPrettier
-)
+  prettier
+]

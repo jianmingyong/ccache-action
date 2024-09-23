@@ -18,37 +18,23 @@ import * as git from './git-helper'
 import { getInputs, type GHAInputs } from './input-helper'
 
 async function run(): Promise<void> {
+  if (core.getState('isPost') === 'true') {
+    // TODO: Add post action
+    return
+  }
+
   const input = await getInputs()
 
   if (input.install) {
-    await install(input)
+    await preInstall(input)
   }
 
-  await core.group('Configure Ccache', () => {
-    return new Promise(() => {
-      core.exportVariable('CCACHE_DIR', input.ccacheDir)
-      core.exportVariable('CCACHE_COMPILERCHECK', input.compilerCheck)
-      core.exportVariable(
-        input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS',
-        ''
-      )
-      core.exportVariable(
-        'CCACHE_COMPRESSLEVEL',
-        input.compressionLevel.toString()
-      )
-      core.exportVariable('CCACHE_MAXFILES', input.maxFiles.toString())
-      core.exportVariable('CCACHE_MAXSIZE', input.maxSize)
-      core.exportVariable('CCACHE_SLOPPINESS', input.sloppiness)
-
-      core.info('Configure Completed.')
-    })
-  })
+  await configure(input)
 
   core.saveState('isPost', 'true')
-  core.saveState('ccacheDir', input.ccacheDir)
 }
 
-async function install(input: GHAInputs) {
+async function preInstall(input: GHAInputs) {
   const gitPath = await io.which('git', true)
   core.info(`Found git: ${gitPath}`)
 
@@ -73,8 +59,14 @@ async function install(input: GHAInputs) {
     }
   }
 
-  // If restore fails or the restored binary was not working procceed to install step
+  await install(input, ccacheVersion, installPath)
+}
 
+async function install(
+  input: GHAInputs,
+  ccacheVersion: CCacheVersion,
+  installPath: string
+) {
   if (input.installType === 'binary') {
     const downloadHit = await core.group('Download Binary', async () => {
       const matrix = CCACHE_BINARY_SUPPORTED_URL[os.platform()]
@@ -103,7 +95,7 @@ async function install(input: GHAInputs) {
     })
 
     if (downloadHit) {
-      if (await postInstall(input, ccacheVersion, installPath)) {
+      if (await postInstall(input, ccacheVersion, installPath, true)) {
         return
       }
     }
@@ -178,38 +170,61 @@ async function install(input: GHAInputs) {
     }
   })
 
-  await postInstall(input, ccacheVersion, installPath, true)
+  if (!(await postInstall(input, ccacheVersion, installPath, true))) {
+    throw new Error(
+      'ccache is not working after compilation. Try downgrading if problem persist.'
+    )
+  }
 }
 
 async function postInstall(
   input: GHAInputs,
   ccacheVersion: CCacheVersion,
   installPath: string,
-  throwError?: boolean
+  saveCache?: boolean
 ): Promise<boolean> {
   const working = await core.group('Test ccache', () => testRun(installPath))
 
   if (working) {
     core.addPath(installPath)
 
-    await core.group('Save Binary Cache', () =>
-      saveBinaryCache(
-        installPath,
-        input.ccacheBinaryKeyPrefix,
-        ccacheVersion.version.version
+    if (saveCache) {
+      await core.group('Save Binary Cache', () =>
+        saveBinaryCache(
+          installPath,
+          input.ccacheBinaryKeyPrefix,
+          ccacheVersion.version.version
+        )
       )
-    )
+    }
 
     return true
   }
 
-  if (throwError) {
-    throw new Error(
-      'ccache is not working after compilation. Try downgrading if problem persist.'
-    )
-  }
-
   return false
+}
+
+async function configure(input: GHAInputs) {
+  await core.group<void>('Configure Ccache', () => {
+    return new Promise(resolve => {
+      core.exportVariable('CCACHE_DIR', input.ccacheDir)
+      core.exportVariable('CCACHE_COMPILERCHECK', input.compilerCheck)
+      core.exportVariable(
+        input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS',
+        ''
+      )
+      core.exportVariable(
+        'CCACHE_COMPRESSLEVEL',
+        input.compressionLevel.toString()
+      )
+      core.exportVariable('CCACHE_MAXFILES', input.maxFiles.toString())
+      core.exportVariable('CCACHE_MAXSIZE', input.maxSize)
+      core.exportVariable('CCACHE_SLOPPINESS', input.sloppiness)
+
+      core.info('Configure Completed.')
+      resolve()
+    })
+  })
 }
 
 interface CCacheVersion {

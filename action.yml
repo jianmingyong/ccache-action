@@ -45,9 +45,8 @@ inputs:
   gh-token:
     description:
       'GH token for purging old cache. If this is empty, it will not do the
-      purge stage. Required "Actions" repository permissions (write). You can
-      use: ${{ secrets.GITHUB_TOKEN }}'
-    default: ''
+      purge stage. Required "Actions" repository permissions (write).'
+    default: ${{ github.token }}
 
   # This is where all the ccache related options
   cache-dir:

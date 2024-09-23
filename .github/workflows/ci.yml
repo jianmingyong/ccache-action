@@ -57,4 +57,4 @@ jobs:
       - name: Test Local Action
         uses: ./
         with:
-          gh-token: ${{ secrets.GITHUB_TOKEN }}
+          gh-token: ${{ github.token }}

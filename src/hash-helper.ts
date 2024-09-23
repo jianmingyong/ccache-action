@@ -5,13 +5,11 @@ import * as glob from '@actions/glob'
 
 /**
  * Calculates a SHA-256 hash for the set of files that match the given path pattern(s).
- * @param patterns - A single path pattern or multiple patterns separated by commas.
+ * @param patterns - A single path pattern or multiple patterns.
  * @returns A SHA-256 hash for the set of files, or an empty string if no files are matched.
  */
 export async function hashFiles(...patterns: string[]): Promise<string> {
   const globber = await glob.create(patterns.join('\n'), {
-    excludeHiddenFiles: false,
-    followSymbolicLinks: true,
     matchDirectories: false
   })
 

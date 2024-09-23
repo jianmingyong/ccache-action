@@ -1,17 +1,17 @@
-import { sep } from 'path'
+import * as path from 'path'
 
 import { exec } from '@actions/exec'
 
-export async function testRun(path?: string): Promise<boolean> {
+export async function showVersion(ccachePath?: string): Promise<boolean> {
   let returnCode: number
 
-  if (path === undefined) {
+  if (ccachePath === undefined) {
     returnCode = await exec('ccache', ['--version'], {
       ignoreReturnCode: true
     })
   } else {
-    returnCode = await exec(`.${sep}ccache`, ['--version'], {
-      cwd: path,
+    returnCode = await exec(`.${path.sep}ccache`, ['--version'], {
+      cwd: ccachePath,
       ignoreReturnCode: true
     })
   }

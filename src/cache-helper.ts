@@ -1,23 +1,40 @@
+import * as path from 'path'
 import * as os from 'os'
 
 import * as cache from '@actions/cache'
-import * as core from '@actions/core'
 import * as github from '@actions/github'
 
 export async function restoreBinaryCache(
   installPath: string,
   restoreKeyPrefix: string,
   version: string
-): Promise<boolean> {
+): Promise<string | undefined> {
   try {
-    if (cache.isFeatureAvailable()) {
-      const restoreKey = `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
-      const key = await cache.restoreCache([installPath], restoreKey)
-      return key === restoreKey
-    }
-    return false
+    if (!cache.isFeatureAvailable()) return undefined
+
+    return await cache.restoreCache(
+      [`${installPath}${path.sep}**`],
+      `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
+    )
   } catch {
-    return false
+    return undefined
+  }
+}
+
+export async function saveBinaryCache(
+  installPath: string,
+  restoreKeyPrefix: string,
+  version: string
+): Promise<number | undefined> {
+  try {
+    if (!cache.isFeatureAvailable()) return undefined
+
+    return await cache.saveCache(
+      [`${installPath}${path.sep}**`],
+      `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
+    )
+  } catch {
+    return undefined
   }
 }
 
@@ -26,42 +43,28 @@ export async function restoreCache(
   restoreKeyPrefix: string
 ): Promise<string | undefined> {
   try {
-    if (cache.isFeatureAvailable()) {
-      const restoreKey = `${restoreKeyPrefix}`
-      const key = await cache.restoreCache([ccachePath], restoreKey, [
-        `${restoreKey}_`
-      ])
-      return key
-    }
+    if (!cache.isFeatureAvailable()) return undefined
+
+    return await cache.restoreCache(
+      [`${ccachePath}${path.sep}**`],
+      restoreKeyPrefix,
+      [`${restoreKeyPrefix}_`]
+    )
   } catch {
-    return
+    return undefined
   }
 }
 
-export async function saveBinaryCache(
-  installPath: string,
-  restoreKeyPrefix: string,
-  version: string
-): Promise<void> {
+export async function saveCache(
+  ccachePath: string,
+  restoreKey: string
+): Promise<number | undefined> {
   try {
-    if (cache.isFeatureAvailable()) {
-      await cache.saveCache(
-        [installPath],
-        `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`
-      )
-    }
-  } catch {
-    core.warning('Unable to save binary cache.')
-  }
-}
+    if (!cache.isFeatureAvailable()) return undefined
 
-export async function saveCache(ccachePath: string, restoreKey: string) {
-  try {
-    if (cache.isFeatureAvailable()) {
-      await cache.saveCache([ccachePath], restoreKey)
-    }
+    return await cache.saveCache([`${ccachePath}${path.sep}**`], restoreKey)
   } catch {
-    core.warning('Unable to save cache.')
+    return undefined
   }
 }
 

@@ -72205,59 +72205,52 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.restoreBinaryCache = restoreBinaryCache;
-exports.restoreCache = restoreCache;
 exports.saveBinaryCache = saveBinaryCache;
+exports.restoreCache = restoreCache;
 exports.saveCache = saveCache;
 exports.deleteCache = deleteCache;
+const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
 const cache = __importStar(__nccwpck_require__(7799));
-const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 async function restoreBinaryCache(installPath, restoreKeyPrefix, version) {
     try {
-        if (cache.isFeatureAvailable()) {
-            const restoreKey = `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`;
-            const key = await cache.restoreCache([installPath], restoreKey);
-            return key === restoreKey;
-        }
-        return false;
+        if (!cache.isFeatureAvailable())
+            return undefined;
+        return await cache.restoreCache([`${installPath}${path.sep}**`], `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`);
     }
     catch {
-        return false;
-    }
-}
-async function restoreCache(ccachePath, restoreKeyPrefix) {
-    try {
-        if (cache.isFeatureAvailable()) {
-            const restoreKey = `${restoreKeyPrefix}`;
-            const key = await cache.restoreCache([ccachePath], restoreKey, [
-                `${restoreKey}_`
-            ]);
-            return key;
-        }
-    }
-    catch {
-        return;
+        return undefined;
     }
 }
 async function saveBinaryCache(installPath, restoreKeyPrefix, version) {
     try {
-        if (cache.isFeatureAvailable()) {
-            await cache.saveCache([installPath], `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`);
-        }
+        if (!cache.isFeatureAvailable())
+            return undefined;
+        return await cache.saveCache([`${installPath}${path.sep}**`], `${restoreKeyPrefix}_${os.platform()}_${os.arch()}_${version}`);
     }
     catch {
-        core.warning('Unable to save binary cache.');
+        return undefined;
+    }
+}
+async function restoreCache(ccachePath, restoreKeyPrefix) {
+    try {
+        if (!cache.isFeatureAvailable())
+            return undefined;
+        return await cache.restoreCache([`${ccachePath}${path.sep}**`], restoreKeyPrefix, [`${restoreKeyPrefix}_`]);
+    }
+    catch {
+        return undefined;
     }
 }
 async function saveCache(ccachePath, restoreKey) {
     try {
-        if (cache.isFeatureAvailable()) {
-            await cache.saveCache([ccachePath], restoreKey);
-        }
+        if (!cache.isFeatureAvailable())
+            return undefined;
+        return await cache.saveCache([`${ccachePath}${path.sep}**`], restoreKey);
     }
     catch {
-        core.warning('Unable to save cache.');
+        return undefined;
     }
 }
 async function deleteCache(token, key) {
@@ -72275,25 +72268,48 @@ async function deleteCache(token, key) {
 /***/ }),
 
 /***/ 3056:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.testRun = testRun;
+exports.showVersion = showVersion;
 exports.showStats = showStats;
-const path_1 = __nccwpck_require__(1017);
+const path = __importStar(__nccwpck_require__(1017));
 const exec_1 = __nccwpck_require__(1514);
-async function testRun(path) {
+async function showVersion(ccachePath) {
     let returnCode;
-    if (path === undefined) {
+    if (ccachePath === undefined) {
         returnCode = await (0, exec_1.exec)('ccache', ['--version'], {
             ignoreReturnCode: true
         });
     }
     else {
-        returnCode = await (0, exec_1.exec)(`.${path_1.sep}ccache`, ['--version'], {
-            cwd: path,
+        returnCode = await (0, exec_1.exec)(`.${path.sep}ccache`, ['--version'], {
+            cwd: ccachePath,
             ignoreReturnCode: true
         });
     }
@@ -72446,13 +72462,11 @@ const fs = __importStar(__nccwpck_require__(7147));
 const glob = __importStar(__nccwpck_require__(8090));
 /**
  * Calculates a SHA-256 hash for the set of files that match the given path pattern(s).
- * @param patterns - A single path pattern or multiple patterns separated by commas.
+ * @param patterns - A single path pattern or multiple patterns.
  * @returns A SHA-256 hash for the set of files, or an empty string if no files are matched.
  */
 async function hashFiles(...patterns) {
     const globber = await glob.create(patterns.join('\n'), {
-        excludeHiddenFiles: false,
-        followSymbolicLinks: true,
         matchDirectories: false
     });
     const files = await globber.glob();
@@ -72522,6 +72536,7 @@ const constants_1 = __nccwpck_require__(581);
 const git = __importStar(__nccwpck_require__(1107));
 const hash_helper_1 = __nccwpck_require__(5377);
 const input_helper_1 = __nccwpck_require__(6455);
+const utils_1 = __nccwpck_require__(1314);
 async function run() {
     if (core.getState('isPost') === 'true') {
         await postAction({
@@ -72532,11 +72547,6 @@ async function run() {
         });
         return;
     }
-    else if (core.getState('isPost') === 'false') {
-        core.info('Post action skipped due to an error.');
-        return;
-    }
-    core.saveState('isPost', 'false');
     const input = await (0, input_helper_1.getInputs)();
     if (input.install) {
         await preInstall(input);
@@ -72544,7 +72554,10 @@ async function run() {
     const restoreKey = await core.group('Restore cache', async () => {
         const key = await (0, cache_helper_1.restoreCache)(input.ccacheDir, input.ccacheKeyPrefix);
         if (key !== undefined) {
-            core.info(`Cache Restoed with key: ${key}`);
+            core.info(`Restored cache with key: ${key}`);
+        }
+        else {
+            core.info(`Cache not found.`);
         }
         return key;
     });
@@ -72562,15 +72575,21 @@ async function preInstall(input) {
     await core.group('Clone Repository', () => git.clone(input.path));
     await core.group('Fetch Repository', () => git.fetch(input.path));
     const tags = await core.group('Get Tag List', () => git.tagList(input.path));
-    const ccacheVersion = findVersion(tags, input.version);
+    const ccacheVersion = (0, utils_1.findVersion)(tags, input.version);
     const installPath = path.join(input.path, 'install', 'bin');
     const cacheHit = await core.group('Restore Binary Cache', async () => {
-        return await (0, cache_helper_1.restoreBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
+        const restoreKey = await (0, cache_helper_1.restoreBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
+        if (restoreKey !== undefined) {
+            core.info(`Restored binary cache with key: ${restoreKey}`);
+        }
+        else {
+            core.info('Binary cache not found.');
+        }
+        return restoreKey;
     });
     if (cacheHit) {
-        if (await postInstall(input, ccacheVersion, installPath)) {
+        if (await postInstall(input, ccacheVersion, installPath))
             return;
-        }
     }
     await install(input, ccacheVersion, installPath);
 }
@@ -72593,9 +72612,8 @@ async function install(input, ccacheVersion, installPath) {
             return false;
         });
         if (downloadHit) {
-            if (await postInstall(input, ccacheVersion, installPath, true)) {
+            if (await postInstall(input, ccacheVersion, installPath, true))
                 return;
-            }
         }
     }
     // Fail to restore or download, fall back to compile from source.
@@ -72628,11 +72646,19 @@ async function install(input, ccacheVersion, installPath) {
     }
 }
 async function postInstall(input, ccacheVersion, installPath, saveCache) {
-    const working = await core.group('Test ccache', () => (0, ccache_helper_1.testRun)(installPath));
+    const working = await core.group('Test ccache', () => (0, ccache_helper_1.showVersion)(installPath));
     if (working) {
         core.addPath(installPath);
         if (saveCache) {
-            await core.group('Save Binary Cache', () => (0, cache_helper_1.saveBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version));
+            await core.group('Save Binary Cache', async () => {
+                const cacheId = await (0, cache_helper_1.saveBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
+                if (cacheId !== undefined) {
+                    core.info('Binary cache saved successfully.');
+                }
+                else {
+                    core.info('Binary cache saved failed.');
+                }
+            });
         }
         return true;
     }
@@ -72656,7 +72682,7 @@ async function configure(input) {
 async function postAction(state) {
     await core.group('Show ccache statistics', () => (0, ccache_helper_1.showStats)());
     const outputHash = await core.group('Calculate cache hashes', async () => {
-        const hash = await (0, hash_helper_1.hashFiles)(`${state.ccacheDir.replace('\\', '/')}/**`, `!${state.ccacheDir.replace('\\', '/')}/**/stats`);
+        const hash = await (0, hash_helper_1.hashFiles)(`${state.ccacheDir}${path.sep}**`, `!${state.ccacheDir}${path.sep}**${path.sep}stats`);
         core.info(hash);
         return hash;
     });
@@ -72669,25 +72695,19 @@ async function postAction(state) {
         if (state.ghToken !== '') {
             await core.group('Delete old cache', async () => {
                 await (0, cache_helper_1.deleteCache)(state.ghToken, restoreKey);
-                core.info(`Cache with key: '${restoreKey}' deleted.`);
+                core.info(`Deleted cache with key: ${restoreKey}`);
             });
         }
-        await core.group('Saving cache', () => (0, cache_helper_1.saveCache)(state.ccacheDir, restoreKey));
+        await core.group('Saving cache', async () => {
+            const cacheId = await (0, cache_helper_1.saveCache)(state.ccacheDir, restoreKey);
+            if (cacheId !== undefined) {
+                core.info('Cache saved successfully.');
+            }
+            else {
+                core.info('Cache saved failed.');
+            }
+        });
     }
-}
-function findVersion(tags, range) {
-    const versions = [];
-    tags.forEach((tag) => {
-        const result = semver.coerce(tag, { loose: true });
-        core.debug(`${tag}: ${result?.version ?? 'unknown'}`);
-        if (result !== null)
-            versions.push({ tag: tag, version: result });
-    });
-    const version = semver.maxSatisfying(versions.map(v => v.version), range);
-    if (version === null) {
-        throw new Error(`Could not find a version that satisfy ${range?.range ?? range}`);
-    }
-    return versions.find((v) => semver.eq(v.version, version));
 }
 async function downloadTool(binary, version, downloadPath, installPath) {
     try {
@@ -72804,6 +72824,54 @@ async function getInputs() {
         maxSize: maxSize,
         sloppiness: sloppiness
     };
+}
+
+
+/***/ }),
+
+/***/ 1314:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.findVersion = findVersion;
+const semver = __importStar(__nccwpck_require__(1383));
+function findVersion(tags, versionRange) {
+    const versions = [];
+    tags.forEach((tag) => {
+        const result = semver.coerce(tag, { loose: true });
+        if (result !== null)
+            versions.push({ tag: tag, version: result });
+    });
+    const version = semver.maxSatisfying(versions.map(v => v.version), versionRange);
+    if (version === null) {
+        throw new Error(`Could not find a version that satisfy ${versionRange?.range ?? versionRange}`);
+    }
+    return versions.find((v) => semver.eq(v.version, version));
 }
 
 

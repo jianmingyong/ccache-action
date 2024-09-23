@@ -1,4 +1,4 @@
-import { PathLike, stat } from 'fs'
+import { type PathLike, stat } from 'fs'
 import { promisify } from 'util'
 
 export async function directoryExists(path: PathLike): Promise<boolean> {

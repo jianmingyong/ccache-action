@@ -16,7 +16,7 @@ export default [
         ...globals.node
       },
       parserOptions: {
-        project: '.github/linters/tsconfig.json'
+        project: 'tsconfig.eslint.json'
       }
     }
   },

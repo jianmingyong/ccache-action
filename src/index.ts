@@ -14,7 +14,7 @@ import {
   saveCache,
   deleteCache
 } from './cache-helper'
-import { testRun, showStats } from './ccache-helper'
+import { showVersion, showStats } from './ccache-helper'
 import {
   type CCacheBinaryMetadata,
   CCACHE_BINARY_SUPPORTED_URL,
@@ -23,6 +23,7 @@ import {
 import * as git from './git-helper'
 import { hashFiles } from './hash-helper'
 import { getInputs, type GHAInputs } from './input-helper'
+import { findVersion, type CCacheVersion } from './utils'
 
 interface GHAStates {
   ccacheKeyPrefix: string
@@ -40,12 +41,7 @@ async function run(): Promise<void> {
       ghToken: core.getState('ghToken')
     })
     return
-  } else if (core.getState('isPost') === 'false') {
-    core.info('Post action skipped due to an error.')
-    return
   }
-
-  core.saveState('isPost', 'false')
 
   const input = await getInputs()
 
@@ -55,9 +51,13 @@ async function run(): Promise<void> {
 
   const restoreKey = await core.group('Restore cache', async () => {
     const key = await restoreCache(input.ccacheDir, input.ccacheKeyPrefix)
+
     if (key !== undefined) {
-      core.info(`Cache Restoed with key: ${key}`)
+      core.info(`Restored cache with key: ${key}`)
+    } else {
+      core.info(`Cache not found.`)
     }
+
     return key
   })
 
@@ -83,17 +83,23 @@ async function preInstall(input: GHAInputs) {
   const installPath = path.join(input.path, 'install', 'bin')
 
   const cacheHit = await core.group('Restore Binary Cache', async () => {
-    return await restoreBinaryCache(
+    const restoreKey = await restoreBinaryCache(
       installPath,
       input.ccacheBinaryKeyPrefix,
       ccacheVersion.version.version
     )
+
+    if (restoreKey !== undefined) {
+      core.info(`Restored binary cache with key: ${restoreKey}`)
+    } else {
+      core.info('Binary cache not found.')
+    }
+
+    return restoreKey
   })
 
   if (cacheHit) {
-    if (await postInstall(input, ccacheVersion, installPath)) {
-      return
-    }
+    if (await postInstall(input, ccacheVersion, installPath)) return
   }
 
   await install(input, ccacheVersion, installPath)
@@ -132,9 +138,7 @@ async function install(
     })
 
     if (downloadHit) {
-      if (await postInstall(input, ccacheVersion, installPath, true)) {
-        return
-      }
+      if (await postInstall(input, ccacheVersion, installPath, true)) return
     }
   }
 
@@ -196,19 +200,27 @@ async function postInstall(
   installPath: string,
   saveCache?: boolean
 ): Promise<boolean> {
-  const working = await core.group('Test ccache', () => testRun(installPath))
+  const working = await core.group('Test ccache', () =>
+    showVersion(installPath)
+  )
 
   if (working) {
     core.addPath(installPath)
 
     if (saveCache) {
-      await core.group('Save Binary Cache', () =>
-        saveBinaryCache(
+      await core.group('Save Binary Cache', async () => {
+        const cacheId = await saveBinaryCache(
           installPath,
           input.ccacheBinaryKeyPrefix,
           ccacheVersion.version.version
         )
-      )
+
+        if (cacheId !== undefined) {
+          core.info('Binary cache saved successfully.')
+        } else {
+          core.info('Binary cache saved failed.')
+        }
+      })
     }
 
     return true
@@ -245,8 +257,8 @@ async function postAction(state: GHAStates) {
 
   const outputHash = await core.group('Calculate cache hashes', async () => {
     const hash = await hashFiles(
-      `${state.ccacheDir.replace('\\', '/')}/**`,
-      `!${state.ccacheDir.replace('\\', '/')}/**/stats`
+      `${state.ccacheDir}${path.sep}**`,
+      `!${state.ccacheDir}${path.sep}**${path.sep}stats`
     )
     core.info(hash)
     return hash
@@ -263,45 +275,20 @@ async function postAction(state: GHAStates) {
     if (state.ghToken !== '') {
       await core.group('Delete old cache', async () => {
         await deleteCache(state.ghToken, restoreKey)
-        core.info(`Cache with key: '${restoreKey}' deleted.`)
+        core.info(`Deleted cache with key: ${restoreKey}`)
       })
     }
 
-    await core.group('Saving cache', () =>
-      saveCache(state.ccacheDir, restoreKey)
-    )
+    await core.group('Saving cache', async () => {
+      const cacheId = await saveCache(state.ccacheDir, restoreKey)
+
+      if (cacheId !== undefined) {
+        core.info('Cache saved successfully.')
+      } else {
+        core.info('Cache saved failed.')
+      }
+    })
   }
-}
-
-interface CCacheVersion {
-  tag: string
-  version: semver.SemVer
-}
-
-function findVersion(
-  tags: readonly string[],
-  range: string | semver.Range
-): CCacheVersion {
-  const versions: CCacheVersion[] = []
-
-  tags.forEach((tag: string) => {
-    const result = semver.coerce(tag, { loose: true })
-    core.debug(`${tag}: ${result?.version ?? 'unknown'}`)
-    if (result !== null) versions.push({ tag: tag, version: result })
-  })
-
-  const version = semver.maxSatisfying(
-    versions.map(v => v.version),
-    range
-  )
-
-  if (version === null) {
-    throw new Error(
-      `Could not find a version that satisfy ${(range as semver.Range)?.range ?? range}`
-    )
-  }
-
-  return versions.find((v: CCacheVersion) => semver.eq(v.version, version))!
 }
 
 async function downloadTool(

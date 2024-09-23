@@ -72679,6 +72679,7 @@ function findVersion(tags, range) {
     const versions = [];
     tags.forEach((tag) => {
         const result = semver.coerce(tag, { loose: true });
+        core.debug(`${tag}: ${result?.version ?? 'unknown'}`);
         if (result !== null)
             versions.push({ tag: tag, version: result });
     });

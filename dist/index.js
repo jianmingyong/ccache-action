@@ -72396,16 +72396,16 @@ function checkout(path, branch) {
     return (0, exec_1.exec)('git checkout', ['-f', '--detach', branch], { cwd: path });
 }
 async function tagList(path) {
-    const tags = [];
+    let output = '';
     await (0, exec_1.exec)('git tag', ['--list'], {
         cwd: path,
         listeners: {
-            stdline: (data) => {
-                tags.push(data);
+            stdout: (data) => {
+                output += data.toString();
             }
         }
     });
-    return tags;
+    return output.split(/\r?\n/);
 }
 
 

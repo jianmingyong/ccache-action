@@ -20,16 +20,16 @@ export function checkout(path: string, branch: string): Promise<number> {
 }
 
 export async function tagList(path: string): Promise<string[]> {
-  const tags: string[] = []
+  let output = ''
 
   await exec('git tag', ['--list'], {
     cwd: path,
     listeners: {
-      stdline: (data: string) => {
-        tags.push(data)
+      stdout: (data: Buffer) => {
+        output += data.toString()
       }
     }
   })
 
-  return tags
+  return output.split(/\r?\n/)
 }

@@ -72541,8 +72541,15 @@ async function run() {
     if (input.install) {
         await preInstall(input);
     }
-    const restoreKey = await core.group('Restore cache', () => (0, cache_helper_1.restoreCache)(input.ccacheDir, input.ccacheKeyPrefix));
+    const restoreKey = await core.group('Restore cache', async () => {
+        const key = await (0, cache_helper_1.restoreCache)(input.ccacheDir, input.ccacheKeyPrefix);
+        if (key !== undefined) {
+            core.info(`Cache Restoed with key: ${key}`);
+        }
+        return key;
+    });
     await configure(input);
+    await core.group('Show ccache statistics', () => (0, ccache_helper_1.showStats)());
     core.saveState('isPost', 'true');
     core.saveState('ccacheKeyPrefix', input.ccacheKeyPrefix);
     core.saveState('ccacheDir', input.ccacheDir);
@@ -72658,15 +72665,15 @@ async function postAction(state) {
         return;
     }
     const restoreKey = `${state.ccacheKeyPrefix}_${outputHash}`;
-    if (restoreKey === state.restoreKey) {
+    if (restoreKey !== state.restoreKey) {
         if (state.ghToken !== '') {
             await core.group('Delete old cache', async () => {
                 await (0, cache_helper_1.deleteCache)(state.ghToken, restoreKey);
                 core.info(`Cache with key: '${restoreKey}' deleted.`);
             });
         }
+        await core.group('Saving cache', () => (0, cache_helper_1.saveCache)(state.ccacheDir, restoreKey));
     }
-    await core.group('Saving cache', () => (0, cache_helper_1.saveCache)(state.ccacheDir, restoreKey));
 }
 function findVersion(tags, range) {
     const versions = [];

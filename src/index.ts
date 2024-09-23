@@ -53,11 +53,16 @@ async function run(): Promise<void> {
     await preInstall(input)
   }
 
-  const restoreKey = await core.group('Restore cache', () =>
-    restoreCache(input.ccacheDir, input.ccacheKeyPrefix)
-  )
+  const restoreKey = await core.group('Restore cache', async () => {
+    const key = await restoreCache(input.ccacheDir, input.ccacheKeyPrefix)
+    if (key !== undefined) {
+      core.info(`Cache Restoed with key: ${key}`)
+    }
+    return key
+  })
 
   await configure(input)
+  await core.group('Show ccache statistics', () => showStats())
 
   core.saveState('isPost', 'true')
   core.saveState('ccacheKeyPrefix', input.ccacheKeyPrefix)
@@ -254,16 +259,18 @@ async function postAction(state: GHAStates) {
 
   const restoreKey = `${state.ccacheKeyPrefix}_${outputHash}`
 
-  if (restoreKey === state.restoreKey) {
+  if (restoreKey !== state.restoreKey) {
     if (state.ghToken !== '') {
       await core.group('Delete old cache', async () => {
         await deleteCache(state.ghToken, restoreKey)
         core.info(`Cache with key: '${restoreKey}' deleted.`)
       })
     }
-  }
 
-  await core.group('Saving cache', () => saveCache(state.ccacheDir, restoreKey))
+    await core.group('Saving cache', () =>
+      saveCache(state.ccacheDir, restoreKey)
+    )
+  }
 }
 
 interface CCacheVersion {

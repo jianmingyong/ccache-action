@@ -47,7 +47,12 @@ jobs:
 
   test-action:
     name: GitHub Actions Test
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest', 'ubuntu-latest', 'macos-12']
 
     steps:
       - name: Checkout
@@ -57,4 +62,5 @@ jobs:
       - name: Test Local Action
         uses: ./
         with:
-          gh-token: ${{ github.token }}
+          ccache-key-prefix: ccache_cache_${{ runner.os }}
+          max-size: 150M

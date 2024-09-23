@@ -108,32 +108,16 @@ async function install(
 
   await core.group('Build ccache', async () => {
     if (process.platform === 'win32') {
-      if (process.env['MSYSTEM']) {
-        await exec(
-          'msys2',
-          [
-            '-c',
-            `cmake ${CCACHE_CONFIGURE_OPTIONS} -G "MSYS Makefiles" -S . -B build`
-          ],
-          { cwd: input.path }
-        )
-        await exec(
-          'msys2',
-          ['-c', `cmake --build build -j ${os.availableParallelism()}`],
-          { cwd: input.path }
-        )
-      } else {
-        await exec(
-          `cmake ${CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`,
-          [],
-          { cwd: input.path }
-        )
-        await exec(
-          `cmake --build build --config Release -j ${os.availableParallelism()}`,
-          [],
-          { cwd: input.path }
-        )
-      }
+      await exec(
+        `cmake ${CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`,
+        [],
+        { cwd: input.path }
+      )
+      await exec(
+        `cmake --build build --config Release -j ${os.availableParallelism()}`,
+        [],
+        { cwd: input.path }
+      )
     } else {
       await exec(
         `cmake ${CCACHE_CONFIGURE_OPTIONS} -G "Unix Makefiles" -S . -B build`,
@@ -150,19 +134,11 @@ async function install(
     const installPrefix = path.join(input.path, 'install')
 
     if (process.platform === 'win32') {
-      if (process.env['MSYSTEM']) {
-        await exec(
-          'msys2',
-          ['-c', `cmake --install build --prefix ${installPrefix}`],
-          { cwd: input.path }
-        )
-      } else {
-        await exec(
-          `cmake --install build --config Release --prefix ${installPrefix}`,
-          [],
-          { cwd: input.path }
-        )
-      }
+      await exec(
+        `cmake --install build --config Release --prefix ${installPrefix}`,
+        [],
+        { cwd: input.path }
+      )
     } else {
       await exec(`cmake --install build --prefix ${installPrefix}`, [], {
         cwd: input.path
@@ -264,8 +240,6 @@ async function downloadTool(
   installPath: string
 ): Promise<boolean> {
   try {
-    await io.mkdirP(installPath)
-
     const extractPath = path.join(downloadPath, 'extract')
     const file = await tc.downloadTool(binary.url(version), downloadPath)
 

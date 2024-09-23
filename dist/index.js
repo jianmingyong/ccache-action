@@ -66963,17 +66963,8 @@ async function install(input, ccacheVersion, installPath) {
     await core.group('Checkout Binary', () => git.checkout(input.path, ccacheVersion.tag));
     await core.group('Build ccache', async () => {
         if (process.platform === 'win32') {
-            if (process.env['MSYSTEM']) {
-                await (0, exec_1.exec)('msys2', [
-                    '-c',
-                    `cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "MSYS Makefiles" -S . -B build`
-                ], { cwd: input.path });
-                await (0, exec_1.exec)('msys2', ['-c', `cmake --build build -j ${os.availableParallelism()}`], { cwd: input.path });
-            }
-            else {
-                await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`, [], { cwd: input.path });
-                await (0, exec_1.exec)(`cmake --build build --config Release -j ${os.availableParallelism()}`, [], { cwd: input.path });
-            }
+            await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`, [], { cwd: input.path });
+            await (0, exec_1.exec)(`cmake --build build --config Release -j ${os.availableParallelism()}`, [], { cwd: input.path });
         }
         else {
             await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Unix Makefiles" -S . -B build`, [], { cwd: input.path });
@@ -66985,12 +66976,7 @@ async function install(input, ccacheVersion, installPath) {
     await core.group('Install ccache', async () => {
         const installPrefix = path.join(input.path, 'install');
         if (process.platform === 'win32') {
-            if (process.env['MSYSTEM']) {
-                await (0, exec_1.exec)('msys2', ['-c', `cmake --install build --prefix ${installPrefix}`], { cwd: input.path });
-            }
-            else {
-                await (0, exec_1.exec)(`cmake --install build --config Release --prefix ${installPrefix}`, [], { cwd: input.path });
-            }
+            await (0, exec_1.exec)(`cmake --install build --config Release --prefix ${installPrefix}`, [], { cwd: input.path });
         }
         else {
             await (0, exec_1.exec)(`cmake --install build --prefix ${installPrefix}`, [], {
@@ -67043,7 +67029,6 @@ function findVersion(tags, range) {
 }
 async function downloadTool(binary, version, downloadPath, installPath) {
     try {
-        await io.mkdirP(installPath);
         const extractPath = path.join(downloadPath, 'extract');
         const file = await tc.downloadTool(binary.url(version), downloadPath);
         if (binary.fileType === 'zip') {

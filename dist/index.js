@@ -72532,6 +72532,11 @@ async function run() {
         });
         return;
     }
+    else if (core.getState('isPost') === 'false') {
+        core.info('Post action skipped due to an error.');
+        return;
+    }
+    core.saveState('isPost', 'false');
     const input = await (0, input_helper_1.getInputs)();
     if (input.install) {
         await preInstall(input);

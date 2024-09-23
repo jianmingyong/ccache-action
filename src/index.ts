@@ -40,7 +40,12 @@ async function run(): Promise<void> {
       ghToken: core.getState('ghToken')
     })
     return
+  } else if (core.getState('isPost') === 'false') {
+    core.info('Post action skipped due to an error.')
+    return
   }
+
+  core.saveState('isPost', 'false')
 
   const input = await getInputs()
 

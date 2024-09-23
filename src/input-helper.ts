@@ -13,6 +13,7 @@ export interface GHAInputs {
   installType: 'binary' | 'source'
   ccacheBinaryKeyPrefix: string
   ccacheKeyPrefix: string
+  ghToken: string
 
   ccacheDir: string
   compilerCheck: string
@@ -96,6 +97,7 @@ export async function getInputs(): Promise<GHAInputs> {
     ccacheBinaryKeyPrefix:
       core.getInput('ccache-binary-key-prefix') || 'ccache_binary',
     ccacheKeyPrefix: core.getInput('ccache-key-prefix') || 'ccache_cache',
+    ghToken: core.getInput('gh-token') || '',
 
     ccacheDir: ccacheDir,
     compilerCheck: compilerCheck,

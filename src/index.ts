@@ -7,19 +7,38 @@ import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import * as semver from 'semver'
 
-import { restoreBinaryCache, saveBinaryCache } from './cache-helper'
-import { testRun } from './ccache-helper'
+import {
+  restoreBinaryCache,
+  saveBinaryCache,
+  restoreCache,
+  saveCache,
+  deleteCache
+} from './cache-helper'
+import { testRun, showStats } from './ccache-helper'
 import {
   type CCacheBinaryMetadata,
   CCACHE_BINARY_SUPPORTED_URL,
   CCACHE_CONFIGURE_OPTIONS
 } from './constants'
 import * as git from './git-helper'
+import { hashFiles } from './hash-helper'
 import { getInputs, type GHAInputs } from './input-helper'
+
+interface GHAStates {
+  ccacheKeyPrefix: string
+  ccacheDir: string
+  restoreKey: string
+  ghToken: string
+}
 
 async function run(): Promise<void> {
   if (core.getState('isPost') === 'true') {
-    // TODO: Add post action
+    await postAction({
+      ccacheKeyPrefix: core.getState('ccacheKeyPrefix'),
+      ccacheDir: core.getState('ccacheDir'),
+      restoreKey: core.getState('restoreKey'),
+      ghToken: core.getState('ghToken')
+    })
     return
   }
 
@@ -29,9 +48,17 @@ async function run(): Promise<void> {
     await preInstall(input)
   }
 
+  const restoreKey = await core.group('Restore cache', () =>
+    restoreCache(input.ccacheDir, input.ccacheKeyPrefix)
+  )
+
   await configure(input)
 
   core.saveState('isPost', 'true')
+  core.saveState('ccacheKeyPrefix', input.ccacheKeyPrefix)
+  core.saveState('ccacheDir', input.ccacheDir)
+  core.saveState('restoreKey', restoreKey ?? '')
+  core.saveState('ghToken', input.ghToken)
 }
 
 async function preInstall(input: GHAInputs) {
@@ -181,7 +208,7 @@ async function postInstall(
 }
 
 async function configure(input: GHAInputs) {
-  await core.group<void>('Configure Ccache', () => {
+  await core.group<void>('Configure ccache', () => {
     return new Promise(resolve => {
       core.exportVariable('CCACHE_DIR', input.ccacheDir)
       core.exportVariable('CCACHE_COMPILERCHECK', input.compilerCheck)
@@ -201,6 +228,37 @@ async function configure(input: GHAInputs) {
       resolve()
     })
   })
+}
+
+async function postAction(state: GHAStates) {
+  await core.group('Show ccache statistics', () => showStats())
+
+  const outputHash = await core.group('Calculate cache hashes', async () => {
+    const hash = await hashFiles(
+      `${state.ccacheDir.replace('\\', '/')}/**`,
+      `!${state.ccacheDir.replace('\\', '/')}/**/stats`
+    )
+    core.info(hash)
+    return hash
+  })
+
+  if (outputHash === '') {
+    core.info('No cache found. Skip saving cache.')
+    return
+  }
+
+  const restoreKey = `${state.ccacheKeyPrefix}_${outputHash}`
+
+  if (restoreKey === state.restoreKey) {
+    if (state.ghToken !== '') {
+      await core.group('Delete old cache', async () => {
+        await deleteCache(state.ghToken, restoreKey)
+        core.info(`Cache with key: '${restoreKey}' deleted.`)
+      })
+    }
+  }
+
+  await core.group('Saving cache', () => saveCache(state.ccacheDir, restoreKey))
 }
 
 interface CCacheVersion {

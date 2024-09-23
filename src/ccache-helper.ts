@@ -18,3 +18,7 @@ export async function testRun(path?: string): Promise<boolean> {
 
   return returnCode === 0
 }
+
+export async function showStats(): Promise<number> {
+  return await exec('ccache --show-stats')
+}

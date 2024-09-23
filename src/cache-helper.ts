@@ -2,6 +2,7 @@ import * as os from 'os'
 
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
+import * as github from '@actions/github'
 
 export async function restoreBinaryCache(
   installPath: string,
@@ -20,6 +21,23 @@ export async function restoreBinaryCache(
   }
 }
 
+export async function restoreCache(
+  ccachePath: string,
+  restoreKeyPrefix: string
+): Promise<string | undefined> {
+  try {
+    if (cache.isFeatureAvailable()) {
+      const restoreKey = `${restoreKeyPrefix}`
+      const key = await cache.restoreCache([ccachePath], restoreKey, [
+        `${restoreKey}_`
+      ])
+      return key
+    }
+  } catch {
+    return
+  }
+}
+
 export async function saveBinaryCache(
   installPath: string,
   restoreKeyPrefix: string,
@@ -35,4 +53,26 @@ export async function saveBinaryCache(
   } catch {
     core.warning('Unable to save binary cache.')
   }
+}
+
+export async function saveCache(ccachePath: string, restoreKey: string) {
+  try {
+    if (cache.isFeatureAvailable()) {
+      await cache.saveCache([ccachePath], restoreKey)
+    }
+  } catch {
+    core.warning('Unable to save cache.')
+  }
+}
+
+export async function deleteCache(token: string, key: string) {
+  const octokit = github.getOctokit(token)
+  const { owner, repo } = github.context.repo
+
+  await octokit.rest.actions.deleteActionsCacheByKey({
+    owner: owner,
+    repo: repo,
+    key: key,
+    ref: github.context.ref
+  })
 }

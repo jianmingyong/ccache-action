@@ -39,8 +39,15 @@ inputs:
   ccache-key-prefix:
     description:
       'Target key prefix to use for restoring/saving ccache caches. You will
-      need to take care of sharing keys per matrix.'
+      need to have different prefix per matrix to avoid potential cache issues.'
     default: 'ccache_cache'
+
+  gh-token:
+    description:
+      'GH token for purging old cache. If this is empty, it will not do the
+      purge stage. Required "Actions" repository permissions (write). You can
+      use: ${{ secrets.GITHUB_TOKEN }}'
+    default: ''
 
   # This is where all the ccache related options
   cache-dir:

@@ -17,7 +17,7 @@ inputs:
     description:
       'Target ccache version to install. Follows the semver range specification.
       Defaults to latest version. (string)'
-    default: '*'
+    default: '>=4'
 
   install:
     description: 'Whether to install ccache first. (boolean)'

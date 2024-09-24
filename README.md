@@ -58,7 +58,7 @@ jobs:
       # You are required to set the ccache-key-prefix to be unique per matrix.
       # If you are not building for multiple platform, that will not be required.
       - name: Setup Ccache
-        uses: jianmingyong/ccache-action@main
+        uses: jianmingyong/ccache-action@v1
         with:
           ccache-key-prefix: ccache_cache_${{ matrix.os }}
           max-size: 150M

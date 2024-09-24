@@ -13,33 +13,73 @@ and restore after the next workflow.
 
 ## Usage
 
+<!-- prettier-ignore-start -->
 ```yaml
-runs-on: ${{ matrix.os }}
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
-strategy:
-  fail-fast: false
+# You must set the actions permission to write in order for incremental
+# cache to work.
+#
+# Pull request will always be set to read for public repository.
+permissions:
+  contents: read
+  actions: write
 
-  matrix:
-    os: ['windows-latest', 'ubuntu-latest', 'macos-13']
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest', 'ubuntu-latest', 'macos-13']
 
-# Ensure to set up concurrency per ref per matrix to avoid using the same cache
-# in parallel when pushing multiple commits.
-concurrency:
-  group: build_${{ github.ref }}_${{ matrix.os }}
+    # Ensure to set up concurrency per ref per matrix to avoid using the same
+    # cache in parallel when pushing multiple commits.
+    concurrency:
+      group: build_${{ github.ref }}_${{ matrix.os }}
 
-steps:
-  - uses: actions/checkout@v4
+    runs-on: ${{ matrix.os }}
 
-  # Install the latest CMake and Ninja.
-  - uses: lukka/get-cmake@latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-  # You are required to set the ccache-key-prefix to be unique per matrix.
-  # If you are not building for multiple platform, that will not be required.
-  - uses: jianmingyong/ccache-action@main
-    with:
-      ccache-key-prefix: ccache_cache_${{ matrix.os }}
-      max-size: 150M
+      # Install the latest CMake and Ninja.
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      # You are required to set the ccache-key-prefix to be unique per matrix.
+      # If you are not building for multiple platform, that will not be required.
+      - name: Setup Ccache
+        uses: jianmingyong/ccache-action@main
+        with:
+          ccache-key-prefix: ccache_cache_${{ matrix.os }}
+          max-size: 150M
+
+      # This is optional if your project uses vcpkg as a submodule.
+      - name: run-vcpkg
+        uses: lukka/run-vcpkg@v11.5
+
+      # This will run cmake using CMake presets.
+      - uses: lukka/run-cmake@v10
+        with:
+          configurePreset: 'your-configure-preset'
+          configurePresetAdditionalArgs:
+            "['-DCMAKE_C_COMPILER_LAUNCHER=ccache', '-DCMAKE_CXX_COMPILER_LAUNCHER=ccache']"
+          buildPreset: 'your-build-preset'
+
+      # Alternative way to run CMake with Ccache.
+      - run: |
+          cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache ...
 ```
+<!-- prettier-ignore-end -->
 
 This action should preferably by used after installing all system dependencies
 including your preferred compiler.
@@ -55,7 +95,8 @@ like `gcc` or `clang`. `MSVC` compilation is also supported if you are using
 Windows.
 
 `msys2` is also supported by setting `MSYSTEM` environment variable or using
-[msys2/setup-msys2](https://github.com/msys2/setup-msys2) action.
+[msys2/setup-msys2](https://github.com/msys2/setup-msys2) action before
+`ccache-action`.
 
 ## Action inputs
 
@@ -90,4 +131,4 @@ cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache 
 Read more from https://github.com/ccache/ccache/wiki/CMake
 
 For MSVC, you can refer to
-https://github.com/ccache/ccache/wiki/MS-Visual-Studio
+https://github.com/ccache/ccache/wiki/MS-Visual-Studio#usage-with-cmake

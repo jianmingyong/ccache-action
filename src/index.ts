@@ -3,6 +3,7 @@ import * as os from 'os'
 
 import * as core from '@actions/core'
 import { exec } from '@actions/exec'
+import * as github from '@actions/github'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import * as semver from 'semver'
@@ -272,22 +273,24 @@ async function postAction(state: GHAStates) {
   const restoreKey = `${state.ccacheKeyPrefix}_${outputHash}`
 
   if (restoreKey !== state.restoreKey) {
-    if (state.ghToken !== '' && state.restoreKey !== '') {
-      await core.group('Delete old cache', async () => {
-        await deleteCache(state.ghToken, state.restoreKey)
-        core.info(`Deleted cache with key: ${state.restoreKey}`)
-      })
+    if (
+      state.ghToken !== '' &&
+      state.restoreKey !== '' &&
+      !github.context.ref.startsWith('refs/pull/')
+    ) {
+      try {
+        await core.group('Delete old cache', async () => {
+          await deleteCache(state.ghToken, state.restoreKey)
+          core.info(`Deleted cache with key: ${state.restoreKey}`)
+        })
+      } catch (error) {
+        core.warning((error as Error)?.message ?? error)
+      }
     }
 
-    await core.group('Saving cache', async () => {
-      const cacheId = await saveCache(state.ccacheDir, restoreKey)
-
-      if (cacheId !== undefined) {
-        core.info('Cache saved successfully.')
-      } else {
-        core.info('Cache saved failed.')
-      }
-    })
+    await core.group('Saving cache', () =>
+      saveCache(state.ccacheDir, restoreKey)
+    )
   }
 }
 

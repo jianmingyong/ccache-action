@@ -24,7 +24,6 @@ export async function tagList(path: string): Promise<string[]> {
 
   await exec('git tag', ['--list'], {
     cwd: path,
-    silent: true,
     listeners: {
       stdout: (data: Buffer) => {
         output += data.toString()

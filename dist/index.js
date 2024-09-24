@@ -72415,7 +72415,6 @@ async function tagList(path) {
     let output = '';
     await (0, exec_1.exec)('git tag', ['--list'], {
         cwd: path,
-        silent: true,
         listeners: {
             stdout: (data) => {
                 output += data.toString();

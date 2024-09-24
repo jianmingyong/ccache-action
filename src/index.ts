@@ -2,7 +2,6 @@ import * as path from 'path'
 import * as os from 'os'
 
 import * as core from '@actions/core'
-import { exec } from '@actions/exec'
 import * as github from '@actions/github'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
@@ -16,10 +15,10 @@ import {
   deleteCache
 } from './cache-helper'
 import { showVersion, showStats } from './ccache-helper'
+import { CMakeHelper } from './cmake-helper'
 import {
   type CCacheBinaryMetadata,
-  CCACHE_BINARY_SUPPORTED_URL,
-  CCACHE_CONFIGURE_OPTIONS
+  CCACHE_BINARY_SUPPORTED_URL
 } from './constants'
 import * as git from './git-helper'
 import { hashFiles } from './hash-helper'
@@ -73,13 +72,17 @@ async function run(): Promise<void> {
 }
 
 async function preInstall(input: GHAInputs) {
-  const gitPath = await io.which('git', true)
-  core.info(`Found git: ${gitPath}`)
+  await io.which('git', true)
 
   await core.group('Clone Repository', () => git.clone(input.path))
   await core.group('Fetch Repository', () => git.fetch(input.path))
-  const tags = await core.group('Get Tag List', () => git.tagList(input.path))
-  const ccacheVersion = findVersion(tags, input.version)
+
+  const ccacheVersion = await core.group('Find Ccache Version', async () => {
+    const tags = await git.tagList(input.path)
+    const version = findVersion(tags, input.version)
+    core.info(`Select version: ${version.version.version}`)
+    return version
+  })
 
   const installPath = path.join(input.path, 'install', 'bin')
 
@@ -148,44 +151,15 @@ async function install(
     git.checkout(input.path, ccacheVersion.tag)
   )
 
-  await core.group('Build ccache', async () => {
-    if (process.platform === 'win32') {
-      await exec(
-        `cmake ${CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`,
-        [],
-        { cwd: input.path }
-      )
-      await exec(
-        `cmake --build build --config Release -j ${os.availableParallelism()}`,
-        [],
-        { cwd: input.path }
-      )
-    } else {
-      await exec(
-        `cmake ${CCACHE_CONFIGURE_OPTIONS} -G "Unix Makefiles" -S . -B build`,
-        [],
-        { cwd: input.path }
-      )
-      await exec(`cmake --build build -j ${os.availableParallelism()}`, [], {
-        cwd: input.path
-      })
-    }
+  const cmakeHelper = new CMakeHelper(input.path)
+
+  await core.group('Build Ccache', async () => {
+    await cmakeHelper.configure()
+    await cmakeHelper.build()
   })
 
-  await core.group('Install ccache', async () => {
-    const installPrefix = path.join(input.path, 'install')
-
-    if (process.platform === 'win32') {
-      await exec(
-        `cmake --install build --config Release --prefix ${installPrefix}`,
-        [],
-        { cwd: input.path }
-      )
-    } else {
-      await exec(`cmake --install build --prefix ${installPrefix}`, [], {
-        cwd: input.path
-      })
-    }
+  await core.group('Install Ccache', async () => {
+    await cmakeHelper.install(path.join(input.path, 'install'))
   })
 
   if (!(await postInstall(input, ccacheVersion, installPath, true))) {
@@ -201,27 +175,22 @@ async function postInstall(
   installPath: string,
   saveCache?: boolean
 ): Promise<boolean> {
-  const working = await core.group('Test ccache', () =>
+  const working = await core.group('Test Ccache', () =>
     showVersion(installPath)
   )
 
   if (working) {
     core.addPath(installPath)
+    core.setOutput('ccache-binary', installPath)
 
     if (saveCache) {
-      await core.group('Save Binary Cache', async () => {
-        const cacheId = await saveBinaryCache(
+      await core.group('Save Binary Cache', () =>
+        saveBinaryCache(
           installPath,
           input.ccacheBinaryKeyPrefix,
           ccacheVersion.version.version
         )
-
-        if (cacheId !== undefined) {
-          core.info('Binary cache saved successfully.')
-        } else {
-          core.info('Binary cache saved failed.')
-        }
-      })
+      )
     }
 
     return true
@@ -231,23 +200,19 @@ async function postInstall(
 }
 
 async function configure(input: GHAInputs) {
-  await core.group<void>('Configure ccache', () => {
+  await core.group<void>('Configure Ccache', () => {
     return new Promise(resolve => {
       core.exportVariable('CCACHE_DIR', input.ccacheDir)
       core.exportVariable('CCACHE_COMPILERCHECK', input.compilerCheck)
-      core.exportVariable(
-        input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS',
-        ''
-      )
-      core.exportVariable(
-        'CCACHE_COMPRESSLEVEL',
-        input.compressionLevel.toString()
-      )
+      // prettier-ignore
+      core.exportVariable( input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS', 'true')
+      // prettier-ignore
+      core.exportVariable('CCACHE_COMPRESSLEVEL', input.compressionLevel.toString())
       core.exportVariable('CCACHE_MAXFILES', input.maxFiles.toString())
       core.exportVariable('CCACHE_MAXSIZE', input.maxSize)
       core.exportVariable('CCACHE_SLOPPINESS', input.sloppiness)
 
-      core.info('Configure Completed.')
+      core.info('Configure Complete.')
       resolve()
     })
   })

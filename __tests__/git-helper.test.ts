@@ -1,24 +1,23 @@
 import * as exec from '@actions/exec'
-import { jest, describe, beforeEach, it } from '@jest/globals'
 
 import * as git from '../src/git-helper'
 
 let execMock: jest.SpiedFunction<typeof exec.exec>
+let getExecOutputMock: jest.SpiedFunction<typeof exec.getExecOutput>
 
 describe('git-helper.ts', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
     execMock = jest.spyOn(exec, 'exec')
+    getExecOutputMock = jest.spyOn(exec, 'getExecOutput')
   })
 
   it('clone', async () => {
-    const cloneMock = jest.spyOn(git, 'clone')
-    const path = '/some/path'
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     execMock.mockImplementation((commandLine: string, args?: string[]) => {
       return new Promise(resolve => {
-        if (commandLine === 'git clone' && args !== undefined && path in args) {
+        if (commandLine.startsWith('git clone')) {
           resolve(0)
         } else {
           resolve(1)
@@ -26,22 +25,20 @@ describe('git-helper.ts', () => {
       })
     })
 
-    await git.clone(path)
+    const cloneMock = jest.spyOn(git, 'clone')
+    const result = await git.clone('/some/path')
+
     expect(cloneMock).toHaveReturned()
+    expect(result).toStrictEqual(0)
   })
 
   it('fetch', async () => {
-    const fetchMock = jest.spyOn(git, 'fetch')
     const path = '/some/path'
 
     execMock.mockImplementation(
       (commandLine: string, args?: string[], options?: exec.ExecOptions) => {
         return new Promise(resolve => {
-          if (
-            commandLine === 'git fetch' &&
-            args !== undefined &&
-            options?.cwd === path
-          ) {
+          if (commandLine.startsWith('git fetch') && options?.cwd === path) {
             resolve(0)
           } else {
             resolve(1)
@@ -50,25 +47,24 @@ describe('git-helper.ts', () => {
       }
     )
 
-    await git.fetch(path)
+    const fetchMock = jest.spyOn(git, 'fetch')
+    const result = await git.fetch(path)
 
     expect(fetchMock).toHaveReturned()
+    expect(result).toStrictEqual(0)
+
+    const result2 = await git.fetch('')
+    expect(result2).toStrictEqual(1)
   })
 
   it('checkout', async () => {
-    const checkoutMock = jest.spyOn(git, 'checkout')
     const path = '/some/path'
     const branch = 'some-branch'
 
     execMock.mockImplementation(
       (commandLine: string, args?: string[], options?: exec.ExecOptions) => {
         return new Promise(resolve => {
-          if (
-            commandLine === 'git checkout' &&
-            args !== undefined &&
-            branch in args &&
-            options?.cwd === path
-          ) {
+          if (commandLine.startsWith('git checkout') && options?.cwd === path) {
             resolve(0)
           } else {
             resolve(1)
@@ -77,35 +73,42 @@ describe('git-helper.ts', () => {
       }
     )
 
-    await git.checkout(path, branch)
+    const checkoutMock = jest.spyOn(git, 'checkout')
+    const result = await git.checkout(path, branch)
 
-    expect(checkoutMock).toHaveReturned()
+    expect(checkoutMock).toHaveBeenCalled()
+    expect(result).toStrictEqual(0)
+
+    const result2 = await git.checkout('', branch)
+    expect(result2).toStrictEqual(1)
   })
 
   it('tagList', async () => {
-    const tagListMock = jest.spyOn(git, 'tagList')
     const path = '/some/path'
+    const output = ['1.0.0', '1.0.1']
 
-    execMock.mockImplementation(
-      (commandLine: string, args?: string[], options?: exec.ExecOptions) => {
+    getExecOutputMock.mockImplementation(
+      (commandLine: string, _args?: string[], options?: exec.ExecOptions) => {
         return new Promise(resolve => {
-          if (
-            commandLine === 'git tag' &&
-            args !== undefined &&
-            options?.cwd === path &&
-            options?.listeners?.stdline !== undefined
-          ) {
-            options?.listeners.stdline('test')
-            resolve(0)
+          if (commandLine.startsWith('git tag') && options?.cwd === path) {
+            resolve({ exitCode: 0, stdout: output.join('\n'), stderr: '' })
           } else {
-            resolve(1)
+            resolve({ exitCode: 1, stdout: '', stderr: '' })
           }
         })
       }
     )
 
-    await git.tagList(path)
+    const tagListMock = jest.spyOn(git, 'tagList')
+    const result = await git.tagList(path)
 
-    expect(tagListMock).toHaveReturned()
+    expect(tagListMock).toHaveBeenCalled()
+    expect(result).toHaveLength(output.length)
+    output.forEach(o => {
+      expect(result).toContain(o)
+    })
+
+    const result2 = await git.tagList('')
+    expect(result2).toHaveLength(0)
   })
 })

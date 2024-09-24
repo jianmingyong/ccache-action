@@ -1,4 +1,4 @@
-import { exec } from '@actions/exec'
+import { exec, getExecOutput } from '@actions/exec'
 
 import { CCACHE_REPOSITORY } from './constants'
 
@@ -11,25 +11,20 @@ export function clone(path: string): Promise<number> {
   ])
 }
 
-export function fetch(path: string): Promise<number> {
-  return exec('git fetch', ['--depth=1', '--tags'], { cwd: path })
+export function fetch(cwd: string): Promise<number> {
+  return exec('git fetch', ['--depth=1', '--tags'], { cwd: cwd })
 }
 
-export function checkout(path: string, branch: string): Promise<number> {
-  return exec('git checkout', ['-f', '--detach', branch], { cwd: path })
+export function checkout(cwd: string, branch: string): Promise<number> {
+  return exec('git checkout', ['-f', '--detach', branch], { cwd: cwd })
 }
 
-export async function tagList(path: string): Promise<string[]> {
-  let output = ''
-
-  await exec('git tag', ['--list'], {
-    cwd: path,
-    listeners: {
-      stdout: (data: Buffer) => {
-        output += data.toString()
-      }
-    }
+export async function tagList(cwd: string): Promise<string[]> {
+  const output = await getExecOutput('git tag', ['--list'], {
+    cwd: cwd,
+    ignoreReturnCode: true,
+    silent: true
   })
 
-  return output.split(/\r?\n/)
+  return output.exitCode === 0 ? output.stdout.split(/\r?\n/) : []
 }

@@ -22,17 +22,19 @@ strategy:
   matrix:
     os: ['windows-latest', 'ubuntu-latest', 'macos-13']
 
-# Ensure to set up concurrency per ref per matrix to avoid using the same cache in parallel when pushing multiple commits.
+# Ensure to set up concurrency per ref per matrix to avoid using the same cache
+# in parallel when pushing multiple commits.
 concurrency:
   group: build_${{ github.ref }}_${{ matrix.os }}
 
 steps:
   - uses: actions/checkout@v4
 
-  # Install the latest CMake and Ninja. (This should be placed on top of ccache-action)
+  # Install the latest CMake and Ninja.
   - uses: lukka/get-cmake@latest
 
-  # You are required to set the ccache-key-prefix to be unique per matrix. If you are not building for multiple platform, that will not be required.
+  # You are required to set the ccache-key-prefix to be unique per matrix.
+  # If you are not building for multiple platform, that will not be required.
   - uses: jianmingyong/ccache-action@main
     with:
       ccache-key-prefix: ccache_cache_${{ matrix.os }}
@@ -51,6 +53,9 @@ target system, it will fall back to compiling Ccache from source.
 Hence you should ensure that you have installed a proper `CMake` and a compiler
 like `gcc` or `clang`. `MSVC` compilation is also supported if you are using
 Windows.
+
+`msys2` is also supported by setting `MSYSTEM` environment variable or using
+[msys2/setup-msys2](https://github.com/msys2/setup-msys2) action.
 
 ## Action inputs
 
@@ -73,3 +78,16 @@ cache before uploading the new one resulting in only a single copy of cache.
 Incremental cache only works for commits coming from your own Repository. Pull
 requests are not supported and will result in creating multiple copies which
 will flood your cache.
+
+## Telling CMake how to use Ccache
+
+Example:
+
+```sh
+cmake -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache ...
+```
+
+Read more from https://github.com/ccache/ccache/wiki/CMake
+
+For MSVC, you can refer to
+https://github.com/ccache/ccache/wiki/MS-Visual-Studio

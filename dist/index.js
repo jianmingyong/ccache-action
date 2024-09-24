@@ -72322,6 +72322,167 @@ async function showStats() {
 
 /***/ }),
 
+/***/ 1373:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CMakeHelper = void 0;
+const os = __importStar(__nccwpck_require__(857));
+const process = __importStar(__nccwpck_require__(932));
+const exec_1 = __nccwpck_require__(5236);
+const io = __importStar(__nccwpck_require__(4994));
+const constants_1 = __nccwpck_require__(7242);
+class CMakeHelper {
+    workdir;
+    constructor(workdir) {
+        this.workdir = workdir;
+    }
+    async configure() {
+        await this.cmakeCheck();
+        if (process.platform === 'win32') {
+            if (process.env['MSYSTEM']) {
+                // msys2 environment found.
+                if (await this.ninjaCheck()) {
+                    return await (0, exec_1.exec)(`msys2 -c`, [`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Ninja" -S . -B build`], { cwd: this.workdir });
+                }
+                else {
+                    return await (0, exec_1.exec)(`msys2 -c`, [
+                        `cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "MSYS Makefiles" -S . -B build`
+                    ], { cwd: this.workdir });
+                }
+            }
+            else {
+                // Not using msys2, fallback to msvc
+                const vsVersion = await this.getLatestVisualStudioVersion();
+                const arch = os.arch();
+                let generator;
+                let platform;
+                if (vsVersion === '2019') {
+                    generator = '-G "Visual Studio 16 2019"';
+                }
+                else if (vsVersion === '2022') {
+                    generator = '-G "Visual Studio 17 2022"';
+                }
+                else {
+                    throw new Error(`Target version ${vsVersion} is not supported.`);
+                }
+                if (arch === 'ia32') {
+                    platform = '-A Win32';
+                }
+                else if (arch === 'x64') {
+                    platform = '-A x64';
+                }
+                else if (arch === 'arm') {
+                    platform = '-A ARM';
+                }
+                else if (arch === 'arm64') {
+                    platform = '-A ARM64';
+                }
+                else {
+                    throw new Error(`Target platform ${arch} is not supported.`);
+                }
+                return await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} ${generator} ${platform} -S . -B build`, [], { cwd: this.workdir });
+            }
+        }
+        else {
+            if (await this.ninjaCheck()) {
+                return await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Ninja" -S . -B build`, [], { cwd: this.workdir });
+            }
+            else {
+                return await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Unix Makefiles" -S . -B build`, [], { cwd: this.workdir });
+            }
+        }
+    }
+    async build() {
+        await this.cmakeCheck();
+        if (process.platform === 'win32') {
+            if (process.env['MSYSTEM']) {
+                return await (0, exec_1.exec)('msys2 -c', [`cmake --build build -j ${os.availableParallelism()}`], { cwd: this.workdir });
+            }
+            else {
+                return await (0, exec_1.exec)(`cmake --build build --config Release -j ${os.availableParallelism()}`, [], { cwd: this.workdir });
+            }
+        }
+        else {
+            return await (0, exec_1.exec)(`cmake --build build -j ${os.availableParallelism()}`, [], { cwd: this.workdir });
+        }
+    }
+    async install(installPrefix) {
+        await this.cmakeCheck();
+        if (process.platform === 'win32') {
+            if (process.env['MSYSTEM']) {
+                return await (0, exec_1.exec)('msys2 -c', [`cmake --install build --prefix ${installPrefix}`], { cwd: this.workdir });
+            }
+            else {
+                return await (0, exec_1.exec)(`cmake --install build --config Release --prefix ${installPrefix}`, [], { cwd: this.workdir });
+            }
+        }
+        else {
+            return await (0, exec_1.exec)(`cmake --install build --prefix ${installPrefix}`, [], {
+                cwd: this.workdir
+            });
+        }
+    }
+    async cmakeCheck() {
+        if (process.platform === 'win32' && process.env['MSYSTEM']) {
+            const output = await (0, exec_1.getExecOutput)('msys2 -c', ['which cmake'], {
+                silent: true,
+                ignoreReturnCode: true
+            });
+            if (output.exitCode !== 0) {
+                throw new Error('Unable to locate executable file: cmake. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.');
+            }
+            return output.stdout.trim();
+        }
+        return await io.which('cmake', true);
+    }
+    async ninjaCheck() {
+        if (process.platform === 'win32' && process.env['MSYSTEM']) {
+            const output = await (0, exec_1.getExecOutput)('msys2 -c', ['which ninja'], {
+                silent: true,
+                ignoreReturnCode: true
+            });
+            return output.exitCode === 0 ? output.stdout.trim() : '';
+        }
+        return await io.which('ninja', false);
+    }
+    async getLatestVisualStudioVersion() {
+        if (process.platform !== 'win32')
+            return '';
+        const output = await (0, exec_1.getExecOutput)('"C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vswhere.exe"', ['-latest', '-property', 'catalog_productLineVersion'], { silent: true, ignoreReturnCode: true });
+        return output.exitCode === 0 ? output.stdout.trim() : '';
+    }
+}
+exports.CMakeHelper = CMakeHelper;
+
+
+/***/ }),
+
 /***/ 7242:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -72405,23 +72566,19 @@ function clone(path) {
         path
     ]);
 }
-function fetch(path) {
-    return (0, exec_1.exec)('git fetch', ['--depth=1', '--tags'], { cwd: path });
+function fetch(cwd) {
+    return (0, exec_1.exec)('git fetch', ['--depth=1', '--tags'], { cwd: cwd });
 }
-function checkout(path, branch) {
-    return (0, exec_1.exec)('git checkout', ['-f', '--detach', branch], { cwd: path });
+function checkout(cwd, branch) {
+    return (0, exec_1.exec)('git checkout', ['-f', '--detach', branch], { cwd: cwd });
 }
-async function tagList(path) {
-    let output = '';
-    await (0, exec_1.exec)('git tag', ['--list'], {
-        cwd: path,
-        listeners: {
-            stdout: (data) => {
-                output += data.toString();
-            }
-        }
+async function tagList(cwd) {
+    const output = await (0, exec_1.getExecOutput)('git tag', ['--list'], {
+        cwd: cwd,
+        ignoreReturnCode: true,
+        silent: true
     });
-    return output.split(/\r?\n/);
+    return output.exitCode === 0 ? output.stdout.split(/\r?\n/) : [];
 }
 
 
@@ -72526,13 +72683,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const path = __importStar(__nccwpck_require__(6928));
 const os = __importStar(__nccwpck_require__(857));
 const core = __importStar(__nccwpck_require__(7484));
-const exec_1 = __nccwpck_require__(5236);
 const github = __importStar(__nccwpck_require__(3228));
 const io = __importStar(__nccwpck_require__(4994));
 const tc = __importStar(__nccwpck_require__(3472));
 const semver = __importStar(__nccwpck_require__(2088));
 const cache_helper_1 = __nccwpck_require__(2506);
 const ccache_helper_1 = __nccwpck_require__(5427);
+const cmake_helper_1 = __nccwpck_require__(1373);
 const constants_1 = __nccwpck_require__(7242);
 const git = __importStar(__nccwpck_require__(6028));
 const hash_helper_1 = __nccwpck_require__(1000);
@@ -72571,12 +72728,15 @@ async function run() {
     core.saveState('ghToken', input.ghToken);
 }
 async function preInstall(input) {
-    const gitPath = await io.which('git', true);
-    core.info(`Found git: ${gitPath}`);
+    await io.which('git', true);
     await core.group('Clone Repository', () => git.clone(input.path));
     await core.group('Fetch Repository', () => git.fetch(input.path));
-    const tags = await core.group('Get Tag List', () => git.tagList(input.path));
-    const ccacheVersion = (0, utils_1.findVersion)(tags, input.version);
+    const ccacheVersion = await core.group('Find Ccache Version', async () => {
+        const tags = await git.tagList(input.path);
+        const version = (0, utils_1.findVersion)(tags, input.version);
+        core.info(`Select version: ${version.version.version}`);
+        return version;
+    });
     const installPath = path.join(input.path, 'install', 'bin');
     const cacheHit = await core.group('Restore Binary Cache', async () => {
         const restoreKey = await (0, cache_helper_1.restoreBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
@@ -72619,63 +72779,43 @@ async function install(input, ccacheVersion, installPath) {
     }
     // Fail to restore or download, fall back to compile from source.
     await core.group('Checkout Binary', () => git.checkout(input.path, ccacheVersion.tag));
-    await core.group('Build ccache', async () => {
-        if (process.platform === 'win32') {
-            await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Visual Studio 17 2022" -A x64 -T host=x64 -S . -B build`, [], { cwd: input.path });
-            await (0, exec_1.exec)(`cmake --build build --config Release -j ${os.availableParallelism()}`, [], { cwd: input.path });
-        }
-        else {
-            await (0, exec_1.exec)(`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Unix Makefiles" -S . -B build`, [], { cwd: input.path });
-            await (0, exec_1.exec)(`cmake --build build -j ${os.availableParallelism()}`, [], {
-                cwd: input.path
-            });
-        }
+    const cmakeHelper = new cmake_helper_1.CMakeHelper(input.path);
+    await core.group('Build Ccache', async () => {
+        await cmakeHelper.configure();
+        await cmakeHelper.build();
     });
-    await core.group('Install ccache', async () => {
-        const installPrefix = path.join(input.path, 'install');
-        if (process.platform === 'win32') {
-            await (0, exec_1.exec)(`cmake --install build --config Release --prefix ${installPrefix}`, [], { cwd: input.path });
-        }
-        else {
-            await (0, exec_1.exec)(`cmake --install build --prefix ${installPrefix}`, [], {
-                cwd: input.path
-            });
-        }
+    await core.group('Install Ccache', async () => {
+        await cmakeHelper.install(path.join(input.path, 'install'));
     });
     if (!(await postInstall(input, ccacheVersion, installPath, true))) {
         throw new Error('ccache is not working after compilation. Try downgrading if problem persist.');
     }
 }
 async function postInstall(input, ccacheVersion, installPath, saveCache) {
-    const working = await core.group('Test ccache', () => (0, ccache_helper_1.showVersion)(installPath));
+    const working = await core.group('Test Ccache', () => (0, ccache_helper_1.showVersion)(installPath));
     if (working) {
         core.addPath(installPath);
+        core.setOutput('ccache-binary', installPath);
         if (saveCache) {
-            await core.group('Save Binary Cache', async () => {
-                const cacheId = await (0, cache_helper_1.saveBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
-                if (cacheId !== undefined) {
-                    core.info('Binary cache saved successfully.');
-                }
-                else {
-                    core.info('Binary cache saved failed.');
-                }
-            });
+            await core.group('Save Binary Cache', () => (0, cache_helper_1.saveBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version));
         }
         return true;
     }
     return false;
 }
 async function configure(input) {
-    await core.group('Configure ccache', () => {
+    await core.group('Configure Ccache', () => {
         return new Promise(resolve => {
             core.exportVariable('CCACHE_DIR', input.ccacheDir);
             core.exportVariable('CCACHE_COMPILERCHECK', input.compilerCheck);
-            core.exportVariable(input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS', '');
+            // prettier-ignore
+            core.exportVariable(input.compression ? 'CCACHE_COMPRESS' : 'CCACHE_NOCOMPRESS', 'true');
+            // prettier-ignore
             core.exportVariable('CCACHE_COMPRESSLEVEL', input.compressionLevel.toString());
             core.exportVariable('CCACHE_MAXFILES', input.maxFiles.toString());
             core.exportVariable('CCACHE_MAXSIZE', input.maxSize);
             core.exportVariable('CCACHE_SLOPPINESS', input.sloppiness);
-            core.info('Configure Completed.');
+            core.info('Configure Complete.');
             resolve();
         });
     });

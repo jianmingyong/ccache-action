@@ -9,7 +9,6 @@ on:
       - main
 
 permissions:
-  actions: write
   contents: read
 
 jobs:
@@ -52,7 +51,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['windows-latest', 'ubuntu-latest', 'macos-12']
+        os: ['windows-latest', 'ubuntu-latest', 'macos-13']
+
+    permissions:
+      actions: write
 
     steps:
       - name: Checkout

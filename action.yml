@@ -105,8 +105,13 @@ inputs:
     default: 'time_macros'
 
 outputs:
-  ccache-binary:
-    description: 'The location where Ccache binary is stored.'
+  ccache-binary-path:
+    description:
+      'The location where Ccache file is stored. Example:
+      $input.path/install/bin/ccache.exe'
+
+  ccache-version:
+    description: 'The version of Ccache being installed in semver format.'
 
 runs:
   using: node20

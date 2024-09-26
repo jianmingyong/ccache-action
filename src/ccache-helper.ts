@@ -19,6 +19,10 @@ export async function showVersion(ccachePath?: string): Promise<boolean> {
   return returnCode === 0
 }
 
-export async function showStats(): Promise<number> {
+export async function showStats(verbose?: boolean): Promise<number> {
+  if (verbose) {
+    return await exec('ccache --show-stats -v')
+  }
+
   return await exec('ccache --show-stats')
 }

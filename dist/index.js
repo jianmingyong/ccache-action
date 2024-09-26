@@ -72315,7 +72315,10 @@ async function showVersion(ccachePath) {
     }
     return returnCode === 0;
 }
-async function showStats() {
+async function showStats(verbose) {
+    if (verbose) {
+        return await (0, exec_1.exec)('ccache --show-stats -v');
+    }
     return await (0, exec_1.exec)('ccache --show-stats');
 }
 
@@ -72735,6 +72738,7 @@ async function preInstall(input) {
         const tags = await git.tagList(input.path);
         const version = (0, utils_1.findVersion)(tags, input.version);
         core.info(`Select version: ${version.version.version}`);
+        core.setOutput('ccache-version', version.version.version);
         return version;
     });
     const installPath = path.join(input.path, 'install', 'bin');
@@ -72795,7 +72799,12 @@ async function postInstall(input, ccacheVersion, installPath, saveCache) {
     const working = await core.group('Test Ccache', () => (0, ccache_helper_1.showVersion)(installPath));
     if (working) {
         core.addPath(installPath);
-        core.setOutput('ccache-binary', installPath);
+        if (os.platform() === 'win32') {
+            core.setOutput('ccache-binary-path', path.join(installPath, 'ccache.exe'));
+        }
+        else {
+            core.setOutput('ccache-binary-path', path.join(installPath, 'ccache'));
+        }
         if (saveCache) {
             await core.group('Save Binary Cache', () => (0, cache_helper_1.saveBinaryCache)(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version));
         }
@@ -72821,7 +72830,7 @@ async function configure(input) {
     });
 }
 async function postAction(state) {
-    await core.group('Show ccache statistics', () => (0, ccache_helper_1.showStats)());
+    await core.group('Show ccache statistics', () => (0, ccache_helper_1.showStats)(true));
     const outputHash = await core.group('Calculate cache hashes', async () => {
         const hash = await (0, hash_helper_1.hashFiles)(`${state.ccacheDir}${path.sep}**`, `!${state.ccacheDir}${path.sep}**${path.sep}stats`);
         core.info(hash);
@@ -72847,6 +72856,9 @@ async function postAction(state) {
             }
         }
         await core.group('Saving cache', () => (0, cache_helper_1.saveCache)(state.ccacheDir, restoreKey));
+    }
+    else {
+        core.info(`Stored cache matches with the current cache. Skip saving cache.`);
     }
 }
 async function downloadTool(binary, version, downloadPath, installPath) {

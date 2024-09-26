@@ -81,6 +81,7 @@ async function preInstall(input: GHAInputs) {
     const tags = await git.tagList(input.path)
     const version = findVersion(tags, input.version)
     core.info(`Select version: ${version.version.version}`)
+    core.setOutput('ccache-version', version.version.version)
     return version
   })
 
@@ -181,7 +182,12 @@ async function postInstall(
 
   if (working) {
     core.addPath(installPath)
-    core.setOutput('ccache-binary', installPath)
+
+    if (os.platform() === 'win32') {
+      core.setOutput('ccache-binary-path', path.join(installPath, 'ccache.exe'))
+    } else {
+      core.setOutput('ccache-binary-path', path.join(installPath, 'ccache'))
+    }
 
     if (saveCache) {
       await core.group('Save Binary Cache', () =>
@@ -219,7 +225,7 @@ async function configure(input: GHAInputs) {
 }
 
 async function postAction(state: GHAStates) {
-  await core.group('Show ccache statistics', () => showStats())
+  await core.group('Show ccache statistics', () => showStats(true))
 
   const outputHash = await core.group('Calculate cache hashes', async () => {
     const hash = await hashFiles(
@@ -256,6 +262,8 @@ async function postAction(state: GHAStates) {
     await core.group('Saving cache', () =>
       saveCache(state.ccacheDir, restoreKey)
     )
+  } else {
+    core.info(`Stored cache matches with the current cache. Skip saving cache.`)
   }
 }
 

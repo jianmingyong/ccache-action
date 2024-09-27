@@ -19,6 +19,25 @@ export async function hashFiles(...patterns: string[]): Promise<string> {
     return ''
   }
 
+  // helper function to limit concurrency
+  function concurrent<V>(
+    concurrency: number,
+    funcs: (() => Promise<V>)[]
+  ): Promise<V[]> {
+    return new Promise((resolve, reject) => {
+      let index = -1
+      const p: Promise<V>[] = []
+      for (let i = 0; i < Math.max(1, Math.min(concurrency, funcs.length)); i++)
+        runPromise()
+      function runPromise() {
+        if (++index < funcs.length)
+          (p[p.length] = funcs[index]()).then(runPromise).catch(reject)
+        else if (index === funcs.length)
+          Promise.all(p).then(resolve).catch(reject)
+      }
+    })
+  }
+
   // Helper function to calculate SHA-256 hash of a file
   async function hashFile(filePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -32,7 +51,10 @@ export async function hashFiles(...patterns: string[]): Promise<string> {
   }
 
   // Calculate hashes for each file
-  const fileHashes = await Promise.all(files.map(file => hashFile(file)))
+  const fileHashes = await concurrent(
+    16,
+    files.map(file => () => hashFile(file))
+  )
 
   // Combine all file hashes and calculate a final hash
   const combinedHash = crypto.createHash('sha256')

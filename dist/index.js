@@ -72619,7 +72619,22 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.hashFiles = hashFiles;
 const crypto = __importStar(__nccwpck_require__(6982));
 const fs = __importStar(__nccwpck_require__(9896));
+const os = __importStar(__nccwpck_require__(857));
 const glob = __importStar(__nccwpck_require__(7206));
+async function runAll(tasks, concurrency) {
+    return new Promise((resolve, reject) => {
+        let index = -1;
+        const p = [];
+        for (let i = 0; i < Math.min(concurrency, tasks.length); i++)
+            runPromise();
+        function runPromise() {
+            if (++index < tasks.length)
+                (p[p.length] = tasks[index]()).then(runPromise).catch(reject);
+            else if (index === tasks.length)
+                Promise.all(p).then(resolve).catch(reject);
+        }
+    });
+}
 /**
  * Calculates a SHA-256 hash for the set of files that match the given path pattern(s).
  * @param patterns - A single path pattern or multiple patterns.
@@ -72644,7 +72659,7 @@ async function hashFiles(...patterns) {
         });
     }
     // Calculate hashes for each file
-    const fileHashes = await Promise.all(files.map(file => hashFile(file)));
+    const fileHashes = await runAll(files.map(file => () => hashFile(file)), os.availableParallelism());
     // Combine all file hashes and calculate a final hash
     const combinedHash = crypto.createHash('sha256');
     fileHashes.forEach(hash => combinedHash.update(hash));

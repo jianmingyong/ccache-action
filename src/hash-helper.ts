@@ -1,7 +1,27 @@
 import * as crypto from 'crypto'
 import * as fs from 'fs'
+import * as os from 'os'
 
 import * as glob from '@actions/glob'
+
+async function runAll<T>(
+  tasks: readonly (() => Promise<T>)[],
+  concurrency: number
+): Promise<T[]> {
+  return new Promise((resolve, reject) => {
+    let index = -1
+    const p: Promise<T>[] = []
+
+    for (let i = 0; i < Math.min(concurrency, tasks.length); i++) runPromise()
+
+    function runPromise() {
+      if (++index < tasks.length)
+        (p[p.length] = tasks[index]()).then(runPromise).catch(reject)
+      else if (index === tasks.length)
+        Promise.all(p).then(resolve).catch(reject)
+    }
+  })
+}
 
 /**
  * Calculates a SHA-256 hash for the set of files that match the given path pattern(s).
@@ -32,7 +52,10 @@ export async function hashFiles(...patterns: string[]): Promise<string> {
   }
 
   // Calculate hashes for each file
-  const fileHashes = await Promise.all(files.map(file => hashFile(file)))
+  const fileHashes = await runAll(
+    files.map(file => () => hashFile(file)),
+    os.availableParallelism()
+  )
 
   // Combine all file hashes and calculate a final hash
   const combinedHash = crypto.createHash('sha256')

@@ -48,7 +48,9 @@ inputs:
       purge stage. Required "Actions" repository permissions (write).'
     default: ${{ github.token }}
 
+  ##############################################
   # This is where all the ccache related options
+  ##############################################
   cache-dir:
     description:
       'This option specifies where ccache will keep its cached compiler outputs.'

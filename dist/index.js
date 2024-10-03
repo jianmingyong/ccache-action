@@ -4395,7 +4395,11 @@ function coerce (version, options) {
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -4408,7 +4412,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -4470,13 +4474,13 @@ class Command {
     }
 }
 function escapeData(s) {
-    return utils_1.toCommandValue(s)
+    return (0, utils_1.toCommandValue)(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A');
 }
 function escapeProperty(s) {
-    return utils_1.toCommandValue(s)
+    return (0, utils_1.toCommandValue)(s)
         .replace(/%/g, '%25')
         .replace(/\r/g, '%0D')
         .replace(/\n/g, '%0A')
@@ -4494,7 +4498,11 @@ function escapeProperty(s) {
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -4507,7 +4515,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -4521,7 +4529,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.platform = exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = exports.markdownSummary = exports.summary = exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __nccwpck_require__(4914);
 const file_command_1 = __nccwpck_require__(4753);
 const utils_1 = __nccwpck_require__(302);
@@ -4541,7 +4549,7 @@ var ExitCode;
      * A code indicating that the action was a failure
      */
     ExitCode[ExitCode["Failure"] = 1] = "Failure";
-})(ExitCode = exports.ExitCode || (exports.ExitCode = {}));
+})(ExitCode || (exports.ExitCode = ExitCode = {}));
 //-----------------------------------------------------------------------
 // Variables
 //-----------------------------------------------------------------------
@@ -4552,13 +4560,13 @@ var ExitCode;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function exportVariable(name, val) {
-    const convertedVal = utils_1.toCommandValue(val);
+    const convertedVal = (0, utils_1.toCommandValue)(val);
     process.env[name] = convertedVal;
     const filePath = process.env['GITHUB_ENV'] || '';
     if (filePath) {
-        return file_command_1.issueFileCommand('ENV', file_command_1.prepareKeyValueMessage(name, val));
+        return (0, file_command_1.issueFileCommand)('ENV', (0, file_command_1.prepareKeyValueMessage)(name, val));
     }
-    command_1.issueCommand('set-env', { name }, convertedVal);
+    (0, command_1.issueCommand)('set-env', { name }, convertedVal);
 }
 exports.exportVariable = exportVariable;
 /**
@@ -4566,7 +4574,7 @@ exports.exportVariable = exportVariable;
  * @param secret value of the secret
  */
 function setSecret(secret) {
-    command_1.issueCommand('add-mask', {}, secret);
+    (0, command_1.issueCommand)('add-mask', {}, secret);
 }
 exports.setSecret = setSecret;
 /**
@@ -4576,10 +4584,10 @@ exports.setSecret = setSecret;
 function addPath(inputPath) {
     const filePath = process.env['GITHUB_PATH'] || '';
     if (filePath) {
-        file_command_1.issueFileCommand('PATH', inputPath);
+        (0, file_command_1.issueFileCommand)('PATH', inputPath);
     }
     else {
-        command_1.issueCommand('add-path', {}, inputPath);
+        (0, command_1.issueCommand)('add-path', {}, inputPath);
     }
     process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
 }
@@ -4654,10 +4662,10 @@ exports.getBooleanInput = getBooleanInput;
 function setOutput(name, value) {
     const filePath = process.env['GITHUB_OUTPUT'] || '';
     if (filePath) {
-        return file_command_1.issueFileCommand('OUTPUT', file_command_1.prepareKeyValueMessage(name, value));
+        return (0, file_command_1.issueFileCommand)('OUTPUT', (0, file_command_1.prepareKeyValueMessage)(name, value));
     }
     process.stdout.write(os.EOL);
-    command_1.issueCommand('set-output', { name }, utils_1.toCommandValue(value));
+    (0, command_1.issueCommand)('set-output', { name }, (0, utils_1.toCommandValue)(value));
 }
 exports.setOutput = setOutput;
 /**
@@ -4666,7 +4674,7 @@ exports.setOutput = setOutput;
  *
  */
 function setCommandEcho(enabled) {
-    command_1.issue('echo', enabled ? 'on' : 'off');
+    (0, command_1.issue)('echo', enabled ? 'on' : 'off');
 }
 exports.setCommandEcho = setCommandEcho;
 //-----------------------------------------------------------------------
@@ -4697,7 +4705,7 @@ exports.isDebug = isDebug;
  * @param message debug message
  */
 function debug(message) {
-    command_1.issueCommand('debug', {}, message);
+    (0, command_1.issueCommand)('debug', {}, message);
 }
 exports.debug = debug;
 /**
@@ -4706,7 +4714,7 @@ exports.debug = debug;
  * @param properties optional properties to add to the annotation.
  */
 function error(message, properties = {}) {
-    command_1.issueCommand('error', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    (0, command_1.issueCommand)('error', (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
 }
 exports.error = error;
 /**
@@ -4715,7 +4723,7 @@ exports.error = error;
  * @param properties optional properties to add to the annotation.
  */
 function warning(message, properties = {}) {
-    command_1.issueCommand('warning', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    (0, command_1.issueCommand)('warning', (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
 }
 exports.warning = warning;
 /**
@@ -4724,7 +4732,7 @@ exports.warning = warning;
  * @param properties optional properties to add to the annotation.
  */
 function notice(message, properties = {}) {
-    command_1.issueCommand('notice', utils_1.toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+    (0, command_1.issueCommand)('notice', (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
 }
 exports.notice = notice;
 /**
@@ -4743,14 +4751,14 @@ exports.info = info;
  * @param name The name of the output group
  */
 function startGroup(name) {
-    command_1.issue('group', name);
+    (0, command_1.issue)('group', name);
 }
 exports.startGroup = startGroup;
 /**
  * End an output group.
  */
 function endGroup() {
-    command_1.issue('endgroup');
+    (0, command_1.issue)('endgroup');
 }
 exports.endGroup = endGroup;
 /**
@@ -4788,9 +4796,9 @@ exports.group = group;
 function saveState(name, value) {
     const filePath = process.env['GITHUB_STATE'] || '';
     if (filePath) {
-        return file_command_1.issueFileCommand('STATE', file_command_1.prepareKeyValueMessage(name, value));
+        return (0, file_command_1.issueFileCommand)('STATE', (0, file_command_1.prepareKeyValueMessage)(name, value));
     }
-    command_1.issueCommand('save-state', { name }, utils_1.toCommandValue(value));
+    (0, command_1.issueCommand)('save-state', { name }, (0, utils_1.toCommandValue)(value));
 }
 exports.saveState = saveState;
 /**
@@ -4826,6 +4834,10 @@ var path_utils_1 = __nccwpck_require__(1976);
 Object.defineProperty(exports, "toPosixPath", ({ enumerable: true, get: function () { return path_utils_1.toPosixPath; } }));
 Object.defineProperty(exports, "toWin32Path", ({ enumerable: true, get: function () { return path_utils_1.toWin32Path; } }));
 Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: function () { return path_utils_1.toPlatformPath; } }));
+/**
+ * Platform utilities exports
+ */
+exports.platform = __importStar(__nccwpck_require__(8968));
 //# sourceMappingURL=core.js.map
 
 /***/ }),
@@ -4838,7 +4850,11 @@ Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: funct
 // For internal use, subject to change.
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -4851,7 +4867,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -4861,7 +4877,6 @@ exports.prepareKeyValueMessage = exports.issueFileCommand = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fs = __importStar(__nccwpck_require__(9896));
 const os = __importStar(__nccwpck_require__(857));
-const uuid_1 = __nccwpck_require__(7073);
 const utils_1 = __nccwpck_require__(302);
 function issueFileCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
@@ -4871,14 +4886,14 @@ function issueFileCommand(command, message) {
     if (!fs.existsSync(filePath)) {
         throw new Error(`Missing file at path: ${filePath}`);
     }
-    fs.appendFileSync(filePath, `${utils_1.toCommandValue(message)}${os.EOL}`, {
+    fs.appendFileSync(filePath, `${(0, utils_1.toCommandValue)(message)}${os.EOL}`, {
         encoding: 'utf8'
     });
 }
 exports.issueFileCommand = issueFileCommand;
 function prepareKeyValueMessage(key, value) {
-    const delimiter = `ghadelimiter_${uuid_1.v4()}`;
-    const convertedValue = utils_1.toCommandValue(value);
+    const delimiter = `ghadelimiter_${crypto.randomUUID()}`;
+    const convertedValue = (0, utils_1.toCommandValue)(value);
     // These should realistically never happen, but just in case someone finds a
     // way to exploit uuid generation let's not allow keys or values that contain
     // the delimiter.
@@ -4963,9 +4978,9 @@ class OidcClient {
                     const encodedAudience = encodeURIComponent(audience);
                     id_token_url = `${id_token_url}&audience=${encodedAudience}`;
                 }
-                core_1.debug(`ID token url is ${id_token_url}`);
+                (0, core_1.debug)(`ID token url is ${id_token_url}`);
                 const id_token = yield OidcClient.getCall(id_token_url);
-                core_1.setSecret(id_token);
+                (0, core_1.setSecret)(id_token);
                 return id_token;
             }
             catch (error) {
@@ -4986,7 +5001,11 @@ exports.OidcClient = OidcClient;
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -4999,7 +5018,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -5041,6 +5060,107 @@ function toPlatformPath(pth) {
 }
 exports.toPlatformPath = toPlatformPath;
 //# sourceMappingURL=path-utils.js.map
+
+/***/ }),
+
+/***/ 8968:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getDetails = exports.isLinux = exports.isMacOS = exports.isWindows = exports.arch = exports.platform = void 0;
+const os_1 = __importDefault(__nccwpck_require__(857));
+const exec = __importStar(__nccwpck_require__(5236));
+const getWindowsInfo = () => __awaiter(void 0, void 0, void 0, function* () {
+    const { stdout: version } = yield exec.getExecOutput('powershell -command "(Get-CimInstance -ClassName Win32_OperatingSystem).Version"', undefined, {
+        silent: true
+    });
+    const { stdout: name } = yield exec.getExecOutput('powershell -command "(Get-CimInstance -ClassName Win32_OperatingSystem).Caption"', undefined, {
+        silent: true
+    });
+    return {
+        name: name.trim(),
+        version: version.trim()
+    };
+});
+const getMacOsInfo = () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    const { stdout } = yield exec.getExecOutput('sw_vers', undefined, {
+        silent: true
+    });
+    const version = (_b = (_a = stdout.match(/ProductVersion:\s*(.+)/)) === null || _a === void 0 ? void 0 : _a[1]) !== null && _b !== void 0 ? _b : '';
+    const name = (_d = (_c = stdout.match(/ProductName:\s*(.+)/)) === null || _c === void 0 ? void 0 : _c[1]) !== null && _d !== void 0 ? _d : '';
+    return {
+        name,
+        version
+    };
+});
+const getLinuxInfo = () => __awaiter(void 0, void 0, void 0, function* () {
+    const { stdout } = yield exec.getExecOutput('lsb_release', ['-i', '-r', '-s'], {
+        silent: true
+    });
+    const [name, version] = stdout.trim().split('\n');
+    return {
+        name,
+        version
+    };
+});
+exports.platform = os_1.default.platform();
+exports.arch = os_1.default.arch();
+exports.isWindows = exports.platform === 'win32';
+exports.isMacOS = exports.platform === 'darwin';
+exports.isLinux = exports.platform === 'linux';
+function getDetails() {
+    return __awaiter(this, void 0, void 0, function* () {
+        return Object.assign(Object.assign({}, (yield (exports.isWindows
+            ? getWindowsInfo()
+            : exports.isMacOS
+                ? getMacOsInfo()
+                : getLinuxInfo()))), { platform: exports.platform,
+            arch: exports.arch,
+            isWindows: exports.isWindows,
+            isMacOS: exports.isMacOS,
+            isLinux: exports.isLinux });
+    });
+}
+exports.getDetails = getDetails;
+//# sourceMappingURL=platform.js.map
 
 /***/ }),
 
@@ -5378,652 +5498,6 @@ function toCommandProperties(annotationProperties) {
 }
 exports.toCommandProperties = toCommandProperties;
 //# sourceMappingURL=utils.js.map
-
-/***/ }),
-
-/***/ 7073:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-Object.defineProperty(exports, "v1", ({
-  enumerable: true,
-  get: function () {
-    return _v.default;
-  }
-}));
-Object.defineProperty(exports, "v3", ({
-  enumerable: true,
-  get: function () {
-    return _v2.default;
-  }
-}));
-Object.defineProperty(exports, "v4", ({
-  enumerable: true,
-  get: function () {
-    return _v3.default;
-  }
-}));
-Object.defineProperty(exports, "v5", ({
-  enumerable: true,
-  get: function () {
-    return _v4.default;
-  }
-}));
-Object.defineProperty(exports, "NIL", ({
-  enumerable: true,
-  get: function () {
-    return _nil.default;
-  }
-}));
-Object.defineProperty(exports, "version", ({
-  enumerable: true,
-  get: function () {
-    return _version.default;
-  }
-}));
-Object.defineProperty(exports, "validate", ({
-  enumerable: true,
-  get: function () {
-    return _validate.default;
-  }
-}));
-Object.defineProperty(exports, "stringify", ({
-  enumerable: true,
-  get: function () {
-    return _stringify.default;
-  }
-}));
-Object.defineProperty(exports, "parse", ({
-  enumerable: true,
-  get: function () {
-    return _parse.default;
-  }
-}));
-
-var _v = _interopRequireDefault(__nccwpck_require__(9692));
-
-var _v2 = _interopRequireDefault(__nccwpck_require__(9750));
-
-var _v3 = _interopRequireDefault(__nccwpck_require__(4663));
-
-var _v4 = _interopRequireDefault(__nccwpck_require__(3616));
-
-var _nil = _interopRequireDefault(__nccwpck_require__(9074));
-
-var _version = _interopRequireDefault(__nccwpck_require__(5441));
-
-var _validate = _interopRequireDefault(__nccwpck_require__(2571));
-
-var _stringify = _interopRequireDefault(__nccwpck_require__(5144));
-
-var _parse = _interopRequireDefault(__nccwpck_require__(262));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/***/ }),
-
-/***/ 6653:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _crypto = _interopRequireDefault(__nccwpck_require__(6982));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function md5(bytes) {
-  if (Array.isArray(bytes)) {
-    bytes = Buffer.from(bytes);
-  } else if (typeof bytes === 'string') {
-    bytes = Buffer.from(bytes, 'utf8');
-  }
-
-  return _crypto.default.createHash('md5').update(bytes).digest();
-}
-
-var _default = md5;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 9074:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-var _default = '00000000-0000-0000-0000-000000000000';
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 262:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _validate = _interopRequireDefault(__nccwpck_require__(2571));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function parse(uuid) {
-  if (!(0, _validate.default)(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  let v;
-  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
-
-  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
-  arr[1] = v >>> 16 & 0xff;
-  arr[2] = v >>> 8 & 0xff;
-  arr[3] = v & 0xff; // Parse ........-####-....-....-............
-
-  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
-  arr[5] = v & 0xff; // Parse ........-....-####-....-............
-
-  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
-  arr[7] = v & 0xff; // Parse ........-....-....-####-............
-
-  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
-  arr[9] = v & 0xff; // Parse ........-....-....-....-############
-  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
-
-  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
-  arr[11] = v / 0x100000000 & 0xff;
-  arr[12] = v >>> 24 & 0xff;
-  arr[13] = v >>> 16 & 0xff;
-  arr[14] = v >>> 8 & 0xff;
-  arr[15] = v & 0xff;
-  return arr;
-}
-
-var _default = parse;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 3982:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 2252:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = rng;
-
-var _crypto = _interopRequireDefault(__nccwpck_require__(6982));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
-
-let poolPtr = rnds8Pool.length;
-
-function rng() {
-  if (poolPtr > rnds8Pool.length - 16) {
-    _crypto.default.randomFillSync(rnds8Pool);
-
-    poolPtr = 0;
-  }
-
-  return rnds8Pool.slice(poolPtr, poolPtr += 16);
-}
-
-/***/ }),
-
-/***/ 9336:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _crypto = _interopRequireDefault(__nccwpck_require__(6982));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function sha1(bytes) {
-  if (Array.isArray(bytes)) {
-    bytes = Buffer.from(bytes);
-  } else if (typeof bytes === 'string') {
-    bytes = Buffer.from(bytes, 'utf8');
-  }
-
-  return _crypto.default.createHash('sha1').update(bytes).digest();
-}
-
-var _default = sha1;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 5144:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _validate = _interopRequireDefault(__nccwpck_require__(2571));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * Convert array of 16 byte values to UUID string format of the form:
- * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
- */
-const byteToHex = [];
-
-for (let i = 0; i < 256; ++i) {
-  byteToHex.push((i + 0x100).toString(16).substr(1));
-}
-
-function stringify(arr, offset = 0) {
-  // Note: Be careful editing this code!  It's been tuned for performance
-  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
-  const uuid = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase(); // Consistency check for valid UUID.  If this throws, it's likely due to one
-  // of the following:
-  // - One or more input array values don't map to a hex octet (leading to
-  // "undefined" in the uuid)
-  // - Invalid input values for the RFC `version` or `variant` fields
-
-  if (!(0, _validate.default)(uuid)) {
-    throw TypeError('Stringified UUID is invalid');
-  }
-
-  return uuid;
-}
-
-var _default = stringify;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 9692:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _rng = _interopRequireDefault(__nccwpck_require__(2252));
-
-var _stringify = _interopRequireDefault(__nccwpck_require__(5144));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// **`v1()` - Generate time-based UUID**
-//
-// Inspired by https://github.com/LiosK/UUID.js
-// and http://docs.python.org/library/uuid.html
-let _nodeId;
-
-let _clockseq; // Previous uuid creation time
-
-
-let _lastMSecs = 0;
-let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
-
-function v1(options, buf, offset) {
-  let i = buf && offset || 0;
-  const b = buf || new Array(16);
-  options = options || {};
-  let node = options.node || _nodeId;
-  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
-  // specified.  We do this lazily to minimize issues related to insufficient
-  // system entropy.  See #189
-
-  if (node == null || clockseq == null) {
-    const seedBytes = options.random || (options.rng || _rng.default)();
-
-    if (node == null) {
-      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
-      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
-    }
-
-    if (clockseq == null) {
-      // Per 4.2.2, randomize (14 bit) clockseq
-      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
-    }
-  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
-  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
-  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
-  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
-
-
-  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
-  // cycle to simulate higher resolution clock
-
-  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
-
-  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
-
-  if (dt < 0 && options.clockseq === undefined) {
-    clockseq = clockseq + 1 & 0x3fff;
-  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
-  // time interval
-
-
-  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
-    nsecs = 0;
-  } // Per 4.2.1.2 Throw error if too many uuids are requested
-
-
-  if (nsecs >= 10000) {
-    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
-  }
-
-  _lastMSecs = msecs;
-  _lastNSecs = nsecs;
-  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
-
-  msecs += 12219292800000; // `time_low`
-
-  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
-  b[i++] = tl >>> 24 & 0xff;
-  b[i++] = tl >>> 16 & 0xff;
-  b[i++] = tl >>> 8 & 0xff;
-  b[i++] = tl & 0xff; // `time_mid`
-
-  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
-  b[i++] = tmh >>> 8 & 0xff;
-  b[i++] = tmh & 0xff; // `time_high_and_version`
-
-  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
-
-  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
-
-  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
-
-  b[i++] = clockseq & 0xff; // `node`
-
-  for (let n = 0; n < 6; ++n) {
-    b[i + n] = node[n];
-  }
-
-  return buf || (0, _stringify.default)(b);
-}
-
-var _default = v1;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 9750:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _v = _interopRequireDefault(__nccwpck_require__(7039));
-
-var _md = _interopRequireDefault(__nccwpck_require__(6653));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const v3 = (0, _v.default)('v3', 0x30, _md.default);
-var _default = v3;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 7039:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = _default;
-exports.URL = exports.DNS = void 0;
-
-var _stringify = _interopRequireDefault(__nccwpck_require__(5144));
-
-var _parse = _interopRequireDefault(__nccwpck_require__(262));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function stringToBytes(str) {
-  str = unescape(encodeURIComponent(str)); // UTF8 escape
-
-  const bytes = [];
-
-  for (let i = 0; i < str.length; ++i) {
-    bytes.push(str.charCodeAt(i));
-  }
-
-  return bytes;
-}
-
-const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
-exports.DNS = DNS;
-const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
-exports.URL = URL;
-
-function _default(name, version, hashfunc) {
-  function generateUUID(value, namespace, buf, offset) {
-    if (typeof value === 'string') {
-      value = stringToBytes(value);
-    }
-
-    if (typeof namespace === 'string') {
-      namespace = (0, _parse.default)(namespace);
-    }
-
-    if (namespace.length !== 16) {
-      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
-    } // Compute hash of namespace and value, Per 4.3
-    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
-    // hashfunc([...namespace, ... value])`
-
-
-    let bytes = new Uint8Array(16 + value.length);
-    bytes.set(namespace);
-    bytes.set(value, namespace.length);
-    bytes = hashfunc(bytes);
-    bytes[6] = bytes[6] & 0x0f | version;
-    bytes[8] = bytes[8] & 0x3f | 0x80;
-
-    if (buf) {
-      offset = offset || 0;
-
-      for (let i = 0; i < 16; ++i) {
-        buf[offset + i] = bytes[i];
-      }
-
-      return buf;
-    }
-
-    return (0, _stringify.default)(bytes);
-  } // Function#name is not settable on some platforms (#270)
-
-
-  try {
-    generateUUID.name = name; // eslint-disable-next-line no-empty
-  } catch (err) {} // For CommonJS default export support
-
-
-  generateUUID.DNS = DNS;
-  generateUUID.URL = URL;
-  return generateUUID;
-}
-
-/***/ }),
-
-/***/ 4663:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _rng = _interopRequireDefault(__nccwpck_require__(2252));
-
-var _stringify = _interopRequireDefault(__nccwpck_require__(5144));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function v4(options, buf, offset) {
-  options = options || {};
-
-  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-
-
-  rnds[6] = rnds[6] & 0x0f | 0x40;
-  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
-
-  if (buf) {
-    offset = offset || 0;
-
-    for (let i = 0; i < 16; ++i) {
-      buf[offset + i] = rnds[i];
-    }
-
-    return buf;
-  }
-
-  return (0, _stringify.default)(rnds);
-}
-
-var _default = v4;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 3616:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _v = _interopRequireDefault(__nccwpck_require__(7039));
-
-var _sha = _interopRequireDefault(__nccwpck_require__(9336));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const v5 = (0, _v.default)('v5', 0x50, _sha.default);
-var _default = v5;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 2571:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _regex = _interopRequireDefault(__nccwpck_require__(3982));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function validate(uuid) {
-  return typeof uuid === 'string' && _regex.default.test(uuid);
-}
-
-var _default = validate;
-exports["default"] = _default;
-
-/***/ }),
-
-/***/ 5441:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = void 0;
-
-var _validate = _interopRequireDefault(__nccwpck_require__(2571));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function version(uuid) {
-  if (!(0, _validate.default)(uuid)) {
-    throw TypeError('Invalid UUID');
-  }
-
-  return parseInt(uuid.substr(14, 1), 16);
-}
-
-var _default = version;
-exports["default"] = _default;
 
 /***/ }),
 
@@ -12403,7 +11877,7 @@ var coreHttpCompat = __nccwpck_require__(1584);
 var coreClient = __nccwpck_require__(160);
 var coreXml = __nccwpck_require__(6375);
 var logger$1 = __nccwpck_require__(6515);
-var abortController = __nccwpck_require__(8110);
+var abortController = __nccwpck_require__(4517);
 var crypto = __nccwpck_require__(6982);
 var coreTracing = __nccwpck_require__(623);
 var stream = __nccwpck_require__(2203);
@@ -12436,14 +11910,14 @@ var fs__namespace = /*#__PURE__*/_interopNamespaceDefault(fs);
 var util__namespace = /*#__PURE__*/_interopNamespaceDefault(util);
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * The `@azure/logger` configuration for this package.
  */
 const logger = logger$1.createClientLogger("storage-blob");
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * The base class from which all request policies derive.
  */
@@ -12483,9 +11957,9 @@ class BaseRequestPolicy {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-const SDK_VERSION = "12.24.0";
-const SERVICE_VERSION = "2024-08-04";
+// Licensed under the MIT License.
+const SDK_VERSION = "12.25.0";
+const SERVICE_VERSION = "2024-11-04";
 const BLOCK_BLOB_MAX_UPLOAD_BLOB_BYTES = 256 * 1024 * 1024; // 256MB
 const BLOCK_BLOB_MAX_STAGE_BLOCK_BYTES = 4000 * 1024 * 1024; // 4000MB
 const BLOCK_BLOB_MAX_BLOCKS = 50000;
@@ -12709,7 +12183,7 @@ const PathStylePorts = [
 ];
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Reserved URL characters must be properly escaped for Storage services like Blob or File.
  *
@@ -13422,7 +12896,7 @@ function assertResponse(response) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * RetryPolicy types.
  */
@@ -13634,7 +13108,7 @@ class StorageRetryPolicy extends BaseRequestPolicy {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * StorageRetryPolicyFactory is a factory class helping generating {@link StorageRetryPolicy} objects.
  */
@@ -13658,7 +13132,7 @@ class StorageRetryPolicyFactory {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Credential policy used to sign HTTP(S) requests before sending. This is an
  * abstract class.
@@ -13686,7 +13160,7 @@ class CredentialPolicy extends BaseRequestPolicy {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /*
  * We need to imitate .Net culture-aware sorting, which is used in storage service.
  * Below tables contain sort-keys for en-US culture.
@@ -13759,7 +13233,7 @@ function isLessThan(lhs, rhs) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * StorageSharedKeyCredentialPolicy is a policy used to sign HTTP request with a shared key.
  */
@@ -13896,7 +13370,7 @@ class StorageSharedKeyCredentialPolicy extends CredentialPolicy {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Credential is an abstract class for Azure Storage HTTP requests signing. This
  * class will host an credentialPolicyCreator factory which generates CredentialPolicy.
@@ -13914,7 +13388,7 @@ class Credential {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -13951,7 +13425,7 @@ class StorageSharedKeyCredential extends Credential {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * AnonymousCredentialPolicy is used with HTTP(S) requests that read public resources
  * or for use with Shared Access Signatures (SAS).
@@ -13970,7 +13444,7 @@ class AnonymousCredentialPolicy extends CredentialPolicy {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * AnonymousCredential provides a credentialPolicyCreator member used to create
  * AnonymousCredentialPolicy objects. AnonymousCredentialPolicy is used with
@@ -13990,7 +13464,7 @@ class AnonymousCredential extends Credential {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 let _defaultHttpClient;
 function getCachedDefaultHttpClient() {
     if (!_defaultHttpClient) {
@@ -14000,7 +13474,7 @@ function getCachedDefaultHttpClient() {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * The programmatic identifier of the StorageBrowserPolicy.
  */
@@ -14028,7 +13502,7 @@ function storageBrowserPolicy() {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Name of the {@link storageRetryPolicy}
  */
@@ -14202,7 +13676,7 @@ function storageRetryPolicy(options = {}) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * The programmatic identifier of the storageSharedKeyCredentialPolicy.
  */
@@ -14330,7 +13804,7 @@ function storageSharedKeyCredentialPolicy(options) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * StorageBrowserPolicy will handle differences between Node.js and browser runtime, including:
  *
@@ -14373,7 +13847,7 @@ class StorageBrowserPolicy extends BaseRequestPolicy {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * StorageBrowserPolicyFactory is a factory class helping generating StorageBrowserPolicy objects.
  */
@@ -14390,7 +13864,7 @@ class StorageBrowserPolicyFactory {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * The programmatic identifier of the storageCorrectContentLengthPolicy.
  */
@@ -14416,7 +13890,7 @@ function storageCorrectContentLengthPolicy() {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * A helper to decide if a given argument satisfies the Pipeline contract
  * @param pipeline - An argument that may be a Pipeline
@@ -23147,7 +22621,7 @@ const timeoutInSeconds = {
 const version = {
     parameterPath: "version",
     mapper: {
-        defaultValue: "2024-08-04",
+        defaultValue: "2024-11-04",
         isConstant: true,
         serializedName: "x-ms-version",
         type: {
@@ -27764,7 +27238,7 @@ let StorageClient$1 = class StorageClient extends coreHttpCompat__namespace.Exte
         const defaults = {
             requestContentType: "application/json; charset=utf-8",
         };
-        const packageDetails = `azsdk-js-azure-storage-blob/12.24.0`;
+        const packageDetails = `azsdk-js-azure-storage-blob/12.25.0`;
         const userAgentPrefix = options.userAgentOptions && options.userAgentOptions.userAgentPrefix
             ? `${options.userAgentOptions.userAgentPrefix} ${packageDetails}`
             : `${packageDetails}`;
@@ -27775,7 +27249,7 @@ let StorageClient$1 = class StorageClient extends coreHttpCompat__namespace.Exte
         // Parameter assignments
         this.url = url;
         // Assigning values to Constant parameters
-        this.version = options.version || "2024-08-04";
+        this.version = options.version || "2024-11-04";
         this.service = new ServiceImpl(this);
         this.container = new ContainerImpl(this);
         this.blob = new BlobImpl(this);
@@ -27786,7 +27260,7 @@ let StorageClient$1 = class StorageClient extends coreHttpCompat__namespace.Exte
 };
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * @internal
  */
@@ -27802,7 +27276,7 @@ class StorageContextClient extends StorageClient$1 {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * A StorageClient represents a based URL class for {@link BlobServiceClient}, {@link ContainerClient}
  * and etc.
@@ -27828,7 +27302,7 @@ class StorageClient {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Creates a span using the global tracer.
  * @internal
@@ -27840,7 +27314,7 @@ const tracingClient = coreTracing.createTracingClient({
 });
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -28035,7 +27509,7 @@ class BlobSASPermissions {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * This is a helper class to construct a string representing the permissions granted by a ServiceSAS to a container.
  * Setting a value to true means that any SAS which uses these permissions will grant permissions for that operation.
@@ -28256,7 +27730,7 @@ class ContainerSASPermissions {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -28286,7 +27760,7 @@ class UserDelegationKeyCredential {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Generate SasIPRange format string. For example:
  *
@@ -28299,7 +27773,7 @@ function ipRangeToString(ipRange) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Protocols for generated SAS.
  */
@@ -28531,8 +28005,11 @@ class SASQueryParameters {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 function generateBlobSASQueryParameters(blobSASSignatureValues, sharedKeyCredentialOrUserDelegationKey, accountName) {
+    return generateBlobSASQueryParametersInternal(blobSASSignatureValues, sharedKeyCredentialOrUserDelegationKey, accountName).sasQueryParameters;
+}
+function generateBlobSASQueryParametersInternal(blobSASSignatureValues, sharedKeyCredentialOrUserDelegationKey, accountName) {
     const version = blobSASSignatureValues.version ? blobSASSignatureValues.version : SERVICE_VERSION;
     const sharedKeyCredential = sharedKeyCredentialOrUserDelegationKey instanceof StorageSharedKeyCredential
         ? sharedKeyCredentialOrUserDelegationKey
@@ -28637,7 +28114,10 @@ function generateBlobSASQueryParameters20150405(blobSASSignatureValues, sharedKe
         blobSASSignatureValues.contentType ? blobSASSignatureValues.contentType : "",
     ].join("\n");
     const signature = sharedKeyCredential.computeHMACSHA256(stringToSign);
-    return new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType);
+    return {
+        sasQueryParameters: new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType),
+        stringToSign: stringToSign,
+    };
 }
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
@@ -28706,7 +28186,10 @@ function generateBlobSASQueryParameters20181109(blobSASSignatureValues, sharedKe
         blobSASSignatureValues.contentType ? blobSASSignatureValues.contentType : "",
     ].join("\n");
     const signature = sharedKeyCredential.computeHMACSHA256(stringToSign);
-    return new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType);
+    return {
+        sasQueryParameters: new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType),
+        stringToSign: stringToSign,
+    };
 }
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
@@ -28776,7 +28259,10 @@ function generateBlobSASQueryParameters20201206(blobSASSignatureValues, sharedKe
         blobSASSignatureValues.contentType ? blobSASSignatureValues.contentType : "",
     ].join("\n");
     const signature = sharedKeyCredential.computeHMACSHA256(stringToSign);
-    return new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, undefined, undefined, undefined, blobSASSignatureValues.encryptionScope);
+    return {
+        sasQueryParameters: new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, undefined, undefined, undefined, blobSASSignatureValues.encryptionScope),
+        stringToSign: stringToSign,
+    };
 }
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
@@ -28852,7 +28338,10 @@ function generateBlobSASQueryParametersUDK20181109(blobSASSignatureValues, userD
         blobSASSignatureValues.contentType,
     ].join("\n");
     const signature = userDelegationKeyCredential.computeHMACSHA256(stringToSign);
-    return new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, userDelegationKeyCredential.userDelegationKey);
+    return {
+        sasQueryParameters: new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, userDelegationKeyCredential.userDelegationKey),
+        stringToSign: stringToSign,
+    };
 }
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
@@ -28931,7 +28420,10 @@ function generateBlobSASQueryParametersUDK20200210(blobSASSignatureValues, userD
         blobSASSignatureValues.contentType,
     ].join("\n");
     const signature = userDelegationKeyCredential.computeHMACSHA256(stringToSign);
-    return new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, userDelegationKeyCredential.userDelegationKey, blobSASSignatureValues.preauthorizedAgentObjectId, blobSASSignatureValues.correlationId);
+    return {
+        sasQueryParameters: new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, userDelegationKeyCredential.userDelegationKey, blobSASSignatureValues.preauthorizedAgentObjectId, blobSASSignatureValues.correlationId),
+        stringToSign: stringToSign,
+    };
 }
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
@@ -29011,7 +28503,10 @@ function generateBlobSASQueryParametersUDK20201206(blobSASSignatureValues, userD
         blobSASSignatureValues.contentType,
     ].join("\n");
     const signature = userDelegationKeyCredential.computeHMACSHA256(stringToSign);
-    return new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, userDelegationKeyCredential.userDelegationKey, blobSASSignatureValues.preauthorizedAgentObjectId, blobSASSignatureValues.correlationId, blobSASSignatureValues.encryptionScope);
+    return {
+        sasQueryParameters: new SASQueryParameters(blobSASSignatureValues.version, signature, verifiedPermissions, undefined, undefined, blobSASSignatureValues.protocol, blobSASSignatureValues.startsOn, blobSASSignatureValues.expiresOn, blobSASSignatureValues.ipRange, blobSASSignatureValues.identifier, resource, blobSASSignatureValues.cacheControl, blobSASSignatureValues.contentDisposition, blobSASSignatureValues.contentEncoding, blobSASSignatureValues.contentLanguage, blobSASSignatureValues.contentType, userDelegationKeyCredential.userDelegationKey, blobSASSignatureValues.preauthorizedAgentObjectId, blobSASSignatureValues.correlationId, blobSASSignatureValues.encryptionScope),
+        stringToSign: stringToSign,
+    };
 }
 function getCanonicalName(accountName, containerName, blobName) {
     // Container: "/blob/account/containerName"
@@ -29078,7 +28573,7 @@ function SASSignatureValuesSanityCheckAndAutofill(blobSASSignatureValues) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * A client that manages leases for a {@link ContainerClient} or a {@link BlobClient}.
  */
@@ -29266,7 +28761,7 @@ class BlobLeaseClient {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -29383,7 +28878,7 @@ class RetriableReadableStream extends stream.Readable {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -29844,14 +29339,14 @@ class BlobDownloadResponse {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 const AVRO_SYNC_MARKER_SIZE = 16;
 const AVRO_INIT_BYTES = new Uint8Array([79, 98, 106, 1]);
 const AVRO_CODEC_KEY = "avro.codec";
 const AVRO_SCHEMA_KEY = "avro.schema";
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 class AvroParser {
     /**
      * Reads a fixed number of bytes from the stream.
@@ -30008,6 +29503,7 @@ class AvroType {
     /**
      * Determines the AvroType from the Avro Schema.
      */
+    // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
     static fromSchema(schema) {
         if (typeof schema === "string") {
             return AvroType.fromStringSchema(schema);
@@ -30043,7 +29539,7 @@ class AvroType {
         try {
             return AvroType.fromStringSchema(type);
         }
-        catch (err) {
+        catch (_a) {
             // eslint-disable-line no-empty
         }
         switch (type) {
@@ -30088,6 +29584,7 @@ class AvroPrimitiveType extends AvroType {
         super();
         this._primitive = primitive;
     }
+    // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
     read(stream, options = {}) {
         switch (this._primitive) {
             case AvroPrimitive.NULL:
@@ -30116,6 +29613,7 @@ class AvroEnumType extends AvroType {
         super();
         this._symbols = symbols;
     }
+    // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
     async read(stream, options = {}) {
         const value = await AvroParser.readInt(stream, options);
         return this._symbols[value];
@@ -30127,7 +29625,6 @@ class AvroUnionType extends AvroType {
         this._types = types;
     }
     async read(stream, options = {}) {
-        // eslint-disable-line @typescript-eslint/ban-types
         const typeIndex = await AvroParser.readInt(stream, options);
         return this._types[typeIndex].read(stream, options);
     }
@@ -30137,6 +29634,7 @@ class AvroMapType extends AvroType {
         super();
         this._itemType = itemType;
     }
+    // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
     read(stream, options = {}) {
         const readItemMethod = (s, opts) => {
             return this._itemType.read(s, opts);
@@ -30150,7 +29648,9 @@ class AvroRecordType extends AvroType {
         this._fields = fields;
         this._name = name;
     }
+    // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
     async read(stream, options = {}) {
+        // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
         const record = {};
         record["$schema"] = this._name;
         for (const key in this._fields) {
@@ -30163,7 +29663,7 @@ class AvroRecordType extends AvroType {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 function arraysEqual(a, b) {
     if (a === b)
         return true;
@@ -30180,7 +29680,7 @@ function arraysEqual(a, b) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 class AvroReader {
     get blockOffset() {
         return this._blockOffset;
@@ -30264,7 +29764,7 @@ class AvroReader {
                             abortSignal: options.abortSignal,
                         }));
                     }
-                    catch (err) {
+                    catch (_a) {
                         // We hit the end of the stream.
                         this._itemsRemainingInBlock = 0;
                     }
@@ -30280,12 +29780,12 @@ class AvroReader {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 class AvroReadable {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 const ABORT_ERROR = new abortController.AbortError("Reading from the avro stream was aborted.");
 class AvroReadableFromStream extends AvroReadable {
     toUint8Array(data) {
@@ -30367,7 +29867,7 @@ class AvroReadableFromStream extends AvroReadable {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -30476,7 +29976,7 @@ class BlobQuickQueryStream extends stream.Readable {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -30841,7 +30341,7 @@ class BlobQueryResponse {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Represents the access tier on a blob.
  * For detailed information about block blob level tiering see {@link https://docs.microsoft.com/azure/storage/blobs/storage-blob-storage-tiers|Hot, cool and archive storage tiers.}
@@ -30955,7 +30455,7 @@ function getBlobServiceAccountAudience(storageAccountName) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Function that converts PageRange and ClearRange to a common Range object.
  * PageRange and ClearRange have start and end while Range offset and count
@@ -30979,7 +30479,7 @@ function rangeResponseFromModel(response) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * This is the poller returned by {@link BlobClient.beginCopyFromURL}.
  * This can not be instantiated directly outside of this package.
@@ -31107,7 +30607,7 @@ function makeBlobBeginCopyFromURLPollOperation(state) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Generate a range string. For example:
  *
@@ -31128,7 +30628,7 @@ function rangeToString(iRange) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 // In browser, during webpack or browserify bundling, this module will be replaced by 'events'
 // https://github.com/Gozala/events
 /**
@@ -31249,7 +30749,7 @@ class Batch {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * This class generates a readable stream from the data in an array of buffers.
  */
@@ -31331,7 +30831,7 @@ class BuffersStream extends stream.Readable {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 const maxBufferLength = buffer.constants.MAX_LENGTH;
 /**
  * This class provides a buffer container which conceptually has no hard size limit.
@@ -31413,7 +30913,7 @@ class PooledBuffer {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * This class accepts a Node.js Readable stream as input, and keeps reading data
  * from the stream into the internal buffer structure, until it reaches maxBuffers.
@@ -31663,7 +31163,7 @@ class BufferScheduler {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * Reads a readable stream into buffer. Fill the buffer from offset to end.
  *
@@ -31773,7 +31273,7 @@ const fsStat = util__namespace.promisify(fs__namespace.stat);
 const fsCreateReadStream = fs__namespace.createReadStream;
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * A BlobClient represents a URL to an Azure Storage blob; the blob may be a block blob,
  * append blob, or page blob.
@@ -32678,6 +32178,24 @@ class BlobClient extends StorageClient {
         });
     }
     /**
+     * Only available for BlobClient constructed with a shared key credential.
+     *
+     * Generates string to sign for a Blob Service Shared Access Signature (SAS) URI based on
+     * the client properties and parameters passed in. The SAS is signed by the shared key credential of the client.
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-a-service-sas
+     *
+     * @param options - Optional parameters.
+     * @returns The SAS URI consisting of the URI to the resource represented by this client, followed by the generated SAS token.
+     */
+    /* eslint-disable-next-line @azure/azure-sdk/ts-naming-options*/
+    generateSasStringToSign(options) {
+        if (!(this.credential instanceof StorageSharedKeyCredential)) {
+            throw new RangeError("Can only generate the SAS when the client is initialized with a shared key credential");
+        }
+        return generateBlobSASQueryParametersInternal(Object.assign({ containerName: this._containerName, blobName: this._name, snapshotTime: this._snapshot, versionId: this._versionId }, options), this.credential).stringToSign;
+    }
+    /**
      * Delete the immutablility policy on the blob.
      *
      * @param options - Optional options to delete immutability policy on the blob.
@@ -33536,6 +33054,7 @@ class BlockBlobClient extends BlobClient {
                 blockList.push(blockID);
                 blockNum++;
                 await this.stageBlock(blockID, body, length, {
+                    customerProvidedKey: options.customerProvidedKey,
                     conditions: options.conditions,
                     encryptionScope: options.encryptionScope,
                     tracingOptions: updatedOptions.tracingOptions,
@@ -34293,7 +33812,7 @@ class PageBlobClient extends BlobClient {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 async function getBodyAsText(batchResponse) {
     let buffer = Buffer.alloc(BATCH_MAX_PAYLOAD_IN_BYTES);
     const responseLength = await streamToBuffer2(batchResponse.readableStreamBody, buffer);
@@ -34306,7 +33825,7 @@ function utf8ByteLength(str) {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 const HTTP_HEADER_DELIMITER = ": ";
 const SPACE_DELIMITER = " ";
 const NOT_FOUND = -1;
@@ -34438,7 +33957,7 @@ class BatchResponseParser {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 var MutexLockStatus;
 (function (MutexLockStatus) {
     MutexLockStatus[MutexLockStatus["LOCKED"] = 0] = "LOCKED";
@@ -34503,7 +34022,7 @@ Mutex.keys = {};
 Mutex.listeners = {};
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * A BlobBatch represents an aggregated set of operations on blobs.
  * Currently, only `delete` and `setAccessTier` are supported.
@@ -34755,7 +34274,7 @@ function batchHeaderFilterPolicy() {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * A BlobBatchClient allows you to make batched requests to the Azure Storage Blob service.
  *
@@ -36023,6 +35542,24 @@ class ContainerClient extends StorageClient {
         });
     }
     /**
+     * Only available for ContainerClient constructed with a shared key credential.
+     *
+     * Generates string to sign for a Blob Container Service Shared Access Signature (SAS) URI
+     * based on the client properties and parameters passed in. The SAS is signed by the shared key credential of the client.
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-a-service-sas
+     *
+     * @param options - Optional parameters.
+     * @returns The SAS URI consisting of the URI to the resource represented by this client, followed by the generated SAS token.
+     */
+    /* eslint-disable-next-line @azure/azure-sdk/ts-naming-options*/
+    generateSasStringToSign(options) {
+        if (!(this.credential instanceof StorageSharedKeyCredential)) {
+            throw new RangeError("Can only generate the SAS when the client is initialized with a shared key credential");
+        }
+        return generateBlobSASQueryParametersInternal(Object.assign({ containerName: this._containerName }, options), this.credential).stringToSign;
+    }
+    /**
      * Creates a BlobBatchClient object to conduct batch operations.
      *
      * @see https://docs.microsoft.com/en-us/rest/api/storageservices/blob-batch
@@ -36035,7 +35572,7 @@ class ContainerClient extends StorageClient {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -36262,7 +35799,7 @@ class AccountSASPermissions {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -36334,7 +35871,7 @@ class AccountSASResourceTypes {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -36414,7 +35951,7 @@ class AccountSASServices {
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /**
  * ONLY AVAILABLE IN NODE.JS RUNTIME.
  *
@@ -36427,6 +35964,10 @@ class AccountSASServices {
  * @param sharedKeyCredential -
  */
 function generateAccountSASQueryParameters(accountSASSignatureValues, sharedKeyCredential) {
+    return generateAccountSASQueryParametersInternal(accountSASSignatureValues, sharedKeyCredential)
+        .sasQueryParameters;
+}
+function generateAccountSASQueryParametersInternal(accountSASSignatureValues, sharedKeyCredential) {
     const version = accountSASSignatureValues.version
         ? accountSASSignatureValues.version
         : SERVICE_VERSION;
@@ -36496,7 +36037,10 @@ function generateAccountSASQueryParameters(accountSASSignatureValues, sharedKeyC
         ].join("\n");
     }
     const signature = sharedKeyCredential.computeHMACSHA256(stringToSign);
-    return new SASQueryParameters(version, signature, parsedPermissions.toString(), parsedServices, parsedResourceTypes, accountSASSignatureValues.protocol, accountSASSignatureValues.startsOn, accountSASSignatureValues.expiresOn, accountSASSignatureValues.ipRange, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, accountSASSignatureValues.encryptionScope);
+    return {
+        sasQueryParameters: new SASQueryParameters(version, signature, parsedPermissions.toString(), parsedServices, parsedResourceTypes, accountSASSignatureValues.protocol, accountSASSignatureValues.startsOn, accountSASSignatureValues.expiresOn, accountSASSignatureValues.ipRange, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, accountSASSignatureValues.encryptionScope),
+        stringToSign: stringToSign,
+    };
 }
 
 /**
@@ -37171,10 +36715,36 @@ class BlobServiceClient extends StorageClient {
             resourceTypes, services: AccountSASServices.parse("b").toString() }, options), this.credential).toString();
         return appendToURLQuery(this.url, sas);
     }
+    /**
+     * Only available for BlobServiceClient constructed with a shared key credential.
+     *
+     * Generates string to sign for a Blob account Shared Access Signature (SAS) URI based on
+     * the client properties and parameters passed in. The SAS is signed by the shared key credential of the client.
+     *
+     * @see https://docs.microsoft.com/en-us/rest/api/storageservices/create-account-sas
+     *
+     * @param expiresOn - Optional. The time at which the shared access signature becomes invalid. Default to an hour later if not provided.
+     * @param permissions - Specifies the list of permissions to be associated with the SAS.
+     * @param resourceTypes - Specifies the resource types associated with the shared access signature.
+     * @param options - Optional parameters.
+     * @returns An account SAS URI consisting of the URI to the resource represented by this client, followed by the generated SAS token.
+     */
+    generateSasStringToSign(expiresOn, permissions = AccountSASPermissions.parse("r"), resourceTypes = "sco", options = {}) {
+        if (!(this.credential instanceof StorageSharedKeyCredential)) {
+            throw RangeError("Can only generate the account SAS when the client is initialized with a shared key credential");
+        }
+        if (expiresOn === undefined) {
+            const now = new Date();
+            expiresOn = new Date(now.getTime() + 3600 * 1000);
+        }
+        return generateAccountSASQueryParametersInternal(Object.assign({ permissions,
+            expiresOn,
+            resourceTypes, services: AccountSASServices.parse("b").toString() }, options), this.credential).stringToSign;
+    }
 }
 
 // Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
+// Licensed under the MIT License.
 /** Known values of {@link EncryptionAlgorithmType} that the service accepts. */
 exports.KnownEncryptionAlgorithmType = void 0;
 (function (KnownEncryptionAlgorithmType) {
@@ -72368,7 +71938,7 @@ class CMakeHelper {
     async configure() {
         await this.cmakeCheck();
         if (process.platform === 'win32') {
-            if (process.env['MSYSTEM']) {
+            if (process.env.MSYSTEM) {
                 // msys2 environment found.
                 if (await this.ninjaCheck()) {
                     return await (0, exec_1.exec)(`msys2 -c`, [`cmake ${constants_1.CCACHE_CONFIGURE_OPTIONS} -G "Ninja" -S . -B build`], { cwd: this.workdir });
@@ -72424,7 +71994,7 @@ class CMakeHelper {
     async build() {
         await this.cmakeCheck();
         if (process.platform === 'win32') {
-            if (process.env['MSYSTEM']) {
+            if (process.env.MSYSTEM) {
                 return await (0, exec_1.exec)('msys2 -c', [`cmake --build build -j ${os.availableParallelism()}`], { cwd: this.workdir });
             }
             else {
@@ -72438,7 +72008,7 @@ class CMakeHelper {
     async install(installPrefix) {
         await this.cmakeCheck();
         if (process.platform === 'win32') {
-            if (process.env['MSYSTEM']) {
+            if (process.env.MSYSTEM) {
                 return await (0, exec_1.exec)('msys2 -c', [`cmake --install build --prefix ${installPrefix}`], { cwd: this.workdir });
             }
             else {
@@ -72452,7 +72022,7 @@ class CMakeHelper {
         }
     }
     async cmakeCheck() {
-        if (process.platform === 'win32' && process.env['MSYSTEM']) {
+        if (process.platform === 'win32' && process.env.MSYSTEM) {
             const output = await (0, exec_1.getExecOutput)('msys2 -c', ['which cmake'], {
                 silent: true,
                 ignoreReturnCode: true
@@ -72465,7 +72035,7 @@ class CMakeHelper {
         return await io.which('cmake', true);
     }
     async ninjaCheck() {
-        if (process.platform === 'win32' && process.env['MSYSTEM']) {
+        if (process.platform === 'win32' && process.env.MSYSTEM) {
             const output = await (0, exec_1.getExecOutput)('msys2 -c', ['which ninja'], {
                 silent: true,
                 ignoreReturnCode: true
@@ -72623,15 +72193,21 @@ const os = __importStar(__nccwpck_require__(857));
 const glob = __importStar(__nccwpck_require__(7206));
 async function runAll(tasks, concurrency) {
     return new Promise((resolve, reject) => {
-        let index = -1;
-        const p = [];
-        for (let i = 0; i < Math.min(concurrency, tasks.length); i++)
+        const counter = new Int32Array(new SharedArrayBuffer(4));
+        const runningTasks = [];
+        for (let i = 0; i < Math.min(concurrency, tasks.length); i++) {
             runPromise();
+        }
         function runPromise() {
-            if (++index < tasks.length)
-                (p[p.length] = tasks[index]()).then(runPromise).catch(reject);
-            else if (index === tasks.length)
-                Promise.all(p).then(resolve).catch(reject);
+            const index = Atomics.add(counter, 0, 1);
+            const taskToRun = tasks[index];
+            if (index < tasks.length) {
+                runningTasks[index] = taskToRun();
+                runningTasks[index].then(runPromise).catch(reject);
+            }
+            else if (index === tasks.length) {
+                Promise.all(runningTasks).then(resolve).catch(reject);
+            }
         }
     });
 }
@@ -72936,7 +72512,7 @@ const core = __importStar(__nccwpck_require__(7484));
 const semver = __importStar(__nccwpck_require__(2088));
 const fs_helper_1 = __nccwpck_require__(6513);
 async function getInputs() {
-    let githubWorkspacePath = process.env['GITHUB_WORKSPACE'];
+    let githubWorkspacePath = process.env.GITHUB_WORKSPACE;
     if (!githubWorkspacePath) {
         throw new Error('GITHUB_WORKSPACE not defined');
     }
@@ -78222,7 +77798,7 @@ Object.defineProperty(exports, "ndJsonPolicyName", ({ enumerable: true, get: fun
 var auxiliaryAuthenticationHeaderPolicy_js_1 = __nccwpck_require__(2262);
 Object.defineProperty(exports, "auxiliaryAuthenticationHeaderPolicy", ({ enumerable: true, get: function () { return auxiliaryAuthenticationHeaderPolicy_js_1.auxiliaryAuthenticationHeaderPolicy; } }));
 Object.defineProperty(exports, "auxiliaryAuthenticationHeaderPolicyName", ({ enumerable: true, get: function () { return auxiliaryAuthenticationHeaderPolicy_js_1.auxiliaryAuthenticationHeaderPolicyName; } }));
-var file_js_1 = __nccwpck_require__(9454);
+var file_js_1 = __nccwpck_require__(7073);
 Object.defineProperty(exports, "createFile", ({ enumerable: true, get: function () { return file_js_1.createFile; } }));
 Object.defineProperty(exports, "createFileFromStream", ({ enumerable: true, get: function () { return file_js_1.createFileFromStream; } }));
 //# sourceMappingURL=index.js.map
@@ -80468,7 +80044,7 @@ exports.concat = concat;
 const tslib_1 = __nccwpck_require__(1860);
 const node_stream_1 = __nccwpck_require__(7075);
 const typeGuards_js_1 = __nccwpck_require__(2621);
-const file_js_1 = __nccwpck_require__(9454);
+const file_js_1 = __nccwpck_require__(7073);
 function streamAsyncIterator() {
     return tslib_1.__asyncGenerator(this, arguments, function* streamAsyncIterator_1() {
         const reader = this.getReader();
@@ -80554,7 +80130,7 @@ async function concat(sources) {
 
 /***/ }),
 
-/***/ 9454:
+/***/ 7073:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -82372,6 +81948,59 @@ function log(message, ...args) {
     process.stderr.write(`${node_util_1.default.format(message, ...args)}${node_os_1.EOL}`);
 }
 //# sourceMappingURL=log.js.map
+
+/***/ }),
+
+/***/ 4841:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AbortError = void 0;
+/**
+ * This error is thrown when an asynchronous operation has been aborted.
+ * Check for this error by testing the `name` that the name property of the
+ * error matches `"AbortError"`.
+ *
+ * @example
+ * ```ts
+ * const controller = new AbortController();
+ * controller.abort();
+ * try {
+ *   doAsyncWork(controller.signal)
+ * } catch (e) {
+ *   if (e.name === 'AbortError') {
+ *     // handle abort error here.
+ *   }
+ * }
+ * ```
+ */
+class AbortError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "AbortError";
+    }
+}
+exports.AbortError = AbortError;
+//# sourceMappingURL=AbortError.js.map
+
+/***/ }),
+
+/***/ 4517:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AbortError = void 0;
+var AbortError_js_1 = __nccwpck_require__(4841);
+Object.defineProperty(exports, "AbortError", ({ enumerable: true, get: function () { return AbortError_js_1.AbortError; } }));
+//# sourceMappingURL=index.js.map
 
 /***/ }),
 

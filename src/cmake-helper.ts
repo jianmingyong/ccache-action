@@ -17,7 +17,7 @@ export class CMakeHelper {
     await this.cmakeCheck()
 
     if (process.platform === 'win32') {
-      if (process.env['MSYSTEM']) {
+      if (process.env.MSYSTEM) {
         // msys2 environment found.
         if (await this.ninjaCheck()) {
           return await exec(
@@ -89,7 +89,7 @@ export class CMakeHelper {
     await this.cmakeCheck()
 
     if (process.platform === 'win32') {
-      if (process.env['MSYSTEM']) {
+      if (process.env.MSYSTEM) {
         return await exec(
           'msys2 -c',
           [`cmake --build build -j ${os.availableParallelism()}`],
@@ -115,7 +115,7 @@ export class CMakeHelper {
     await this.cmakeCheck()
 
     if (process.platform === 'win32') {
-      if (process.env['MSYSTEM']) {
+      if (process.env.MSYSTEM) {
         return await exec(
           'msys2 -c',
           [`cmake --install build --prefix ${installPrefix}`],
@@ -136,7 +136,7 @@ export class CMakeHelper {
   }
 
   private async cmakeCheck(): Promise<string> {
-    if (process.platform === 'win32' && process.env['MSYSTEM']) {
+    if (process.platform === 'win32' && process.env.MSYSTEM) {
       const output = await getExecOutput('msys2 -c', ['which cmake'], {
         silent: true,
         ignoreReturnCode: true
@@ -155,7 +155,7 @@ export class CMakeHelper {
   }
 
   private async ninjaCheck(): Promise<string> {
-    if (process.platform === 'win32' && process.env['MSYSTEM']) {
+    if (process.platform === 'win32' && process.env.MSYSTEM) {
       const output = await getExecOutput('msys2 -c', ['which ninja'], {
         silent: true,
         ignoreReturnCode: true

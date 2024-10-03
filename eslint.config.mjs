@@ -10,6 +10,7 @@ export default [
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   {
     languageOptions: {
       globals: {

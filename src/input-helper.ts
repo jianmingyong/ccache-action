@@ -25,7 +25,7 @@ export interface GHAInputs {
 }
 
 export async function getInputs(): Promise<GHAInputs> {
-  let githubWorkspacePath = process.env['GITHUB_WORKSPACE']
+  let githubWorkspacePath = process.env.GITHUB_WORKSPACE
 
   if (!githubWorkspacePath) {
     throw new Error('GITHUB_WORKSPACE not defined')

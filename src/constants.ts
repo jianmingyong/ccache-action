@@ -5,9 +5,7 @@ export interface CCacheBinaryMatrix {
   darwin: CCacheBinaryVersionMatrix
 }
 
-export interface CCacheBinaryVersionMatrix {
-  [version: string]: CCacheBinaryMetadata
-}
+export type CCacheBinaryVersionMatrix = Record<string, CCacheBinaryMetadata>
 
 export interface CCacheBinaryMetadata {
   url: (version: string) => string

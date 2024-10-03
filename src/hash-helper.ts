@@ -9,16 +9,23 @@ async function runAll<T>(
   concurrency: number
 ): Promise<T[]> {
   return new Promise((resolve, reject) => {
-    let index = -1
-    const p: Promise<T>[] = []
+    const counter = new Int32Array(new SharedArrayBuffer(4))
+    const runningTasks: Promise<T>[] = []
 
-    for (let i = 0; i < Math.min(concurrency, tasks.length); i++) runPromise()
+    for (let i = 0; i < Math.min(concurrency, tasks.length); i++) {
+      runPromise()
+    }
 
     function runPromise() {
-      if (++index < tasks.length)
-        (p[p.length] = tasks[index]()).then(runPromise).catch(reject)
-      else if (index === tasks.length)
-        Promise.all(p).then(resolve).catch(reject)
+      const index = Atomics.add(counter, 0, 1)
+      const taskToRun = tasks[index]
+
+      if (index < tasks.length) {
+        runningTasks[index] = taskToRun()
+        runningTasks[index].then(runPromise).catch(reject)
+      } else if (index === tasks.length) {
+        Promise.all(runningTasks).then(resolve).catch(reject)
+      }
     }
   })
 }

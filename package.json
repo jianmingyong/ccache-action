@@ -15,9 +15,6 @@
   "keywords": [
     "ccache"
   ],
-  "exports": {
-    ".": "./dist/index.js"
-  },
   "engines": {
     "node": ">=20"
   },

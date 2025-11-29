@@ -118,7 +118,9 @@ cache before uploading the new one resulting in only a single copy of cache.
 
 Incremental cache only works for commits coming from your own Repository. Pull
 requests are not supported and will result in creating multiple copies which
-will flood your cache.
+will flood your cache. (Update: You can now use save-cache-once-per-key argument
+to prevent flooding. This is still pretty much experimental and better solution
+may be offered once it is implemented)
 
 ## Telling CMake how to use Ccache
 

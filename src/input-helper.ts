@@ -13,6 +13,7 @@ export interface GHAInputs {
   installType: 'binary' | 'source'
   ccacheBinaryKeyPrefix: string
   ccacheKeyPrefix: string
+  saveCacheOncePerKey: boolean
   ghToken: string
 
   ccacheDir: string
@@ -97,6 +98,8 @@ export async function getInputs(): Promise<GHAInputs> {
     ccacheBinaryKeyPrefix:
       core.getInput('ccache-binary-key-prefix') || 'ccache_binary',
     ccacheKeyPrefix: core.getInput('ccache-key-prefix') || 'ccache_cache',
+    saveCacheOncePerKey:
+      core.getBooleanInput('save-cache-once-per-key') || false,
     ghToken: core.getInput('gh-token') || '',
 
     ccacheDir: ccacheDir,

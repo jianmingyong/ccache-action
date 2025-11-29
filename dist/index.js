@@ -51709,6 +51709,7 @@ async function run() {
         await postAction({
             ccacheKeyPrefix: core.getState('ccacheKeyPrefix'),
             ccacheDir: core.getState('ccacheDir'),
+            saveCacheOncePerKey: core.getState('saveCacheOncePerKey') === 'true',
             restoreKey: core.getState('restoreKey'),
             ghToken: core.getState('ghToken')
         });
@@ -51733,6 +51734,7 @@ async function run() {
     core.saveState('isPost', 'true');
     core.saveState('ccacheKeyPrefix', input.ccacheKeyPrefix);
     core.saveState('ccacheDir', input.ccacheDir);
+    core.saveState('saveCacheOncePerKey', input.saveCacheOncePerKey);
     core.saveState('restoreKey', restoreKey ?? '');
     core.saveState('ghToken', input.ghToken);
 }
@@ -51847,10 +51849,13 @@ async function postAction(state) {
         return;
     }
     const restoreKey = `${state.ccacheKeyPrefix}_${outputHash}`;
+    const isPullRequest = github.context.ref.startsWith('refs/pull/');
     if (restoreKey !== state.restoreKey) {
-        if (state.ghToken !== '' &&
-            state.restoreKey !== '' &&
-            !github.context.ref.startsWith('refs/pull/')) {
+        if (state.saveCacheOncePerKey && state.restoreKey !== '') {
+            core.info(`Stored cache already exist. Skip saving cache.`);
+            return;
+        }
+        if (state.ghToken !== '' && state.restoreKey !== '' && !isPullRequest) {
             try {
                 await core.group('Delete old cache', async () => {
                     await (0, cache_helper_1.deleteCache)(state.ghToken, state.restoreKey);
@@ -51983,6 +51988,7 @@ async function getInputs() {
         installType: installType,
         ccacheBinaryKeyPrefix: core.getInput('ccache-binary-key-prefix') || 'ccache_binary',
         ccacheKeyPrefix: core.getInput('ccache-key-prefix') || 'ccache_cache',
+        saveCacheOncePerKey: core.getBooleanInput('save-cache-once-per-key') || false,
         ghToken: core.getInput('gh-token') || '',
         ccacheDir: ccacheDir,
         compilerCheck: compilerCheck,

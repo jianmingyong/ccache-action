@@ -42,6 +42,12 @@ inputs:
       need to have different prefix per matrix to avoid potential cache issues.'
     default: 'ccache_cache'
 
+  save-cache-once-per-key:
+    description:
+      'If true, the action will only save cache once per ccache-key-prefix. You
+      will have to manually delete the cache in order for it to save again.'
+    default: 'false'
+
   gh-token:
     description:
       'GH token for purging old cache. If this is empty, it will not do the

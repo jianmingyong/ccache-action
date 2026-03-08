@@ -94,7 +94,7 @@ async function preInstall(input: GHAInputs) {
     const restoreKey = await restoreBinaryCache(
       installPath,
       input.ccacheBinaryKeyPrefix,
-      ccacheVersion.version.version
+      ccacheVersion.tag
     )
 
     if (restoreKey !== undefined) {
@@ -197,7 +197,7 @@ async function postInstall(
         saveBinaryCache(
           installPath,
           input.ccacheBinaryKeyPrefix,
-          ccacheVersion.version.version
+          ccacheVersion.tag
         )
       )
     }

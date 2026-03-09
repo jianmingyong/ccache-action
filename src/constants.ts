@@ -37,7 +37,7 @@ export const CCACHE_BINARY_SUPPORTED_URL: CCacheBinaryMatrix = {
       url: (version: string) =>
         `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-linux-x86_64-glibc.tar.xz`,
       fileType: 'tar',
-      pathToBinary: (version: string) => `ccache-${version}-linux-x86_64`
+      pathToBinary: (version: string) => `ccache-${version}-linux-x86_64-glibc`
     },
 
     '>=4.6.1 <4.13': {

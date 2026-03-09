@@ -79953,7 +79953,7 @@ const CCACHE_BINARY_SUPPORTED_URL = {
         '>=4.13': {
             url: (version) => `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-linux-x86_64-glibc.tar.xz`,
             fileType: 'tar',
-            pathToBinary: (version) => `ccache-${version}-linux-x86_64`
+            pathToBinary: (version) => `ccache-${version}-linux-x86_64-glibc`
         },
         '>=4.6.1 <4.13': {
             url: (version) => `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-linux-x86_64.tar.xz`,

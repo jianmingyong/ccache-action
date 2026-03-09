@@ -94,7 +94,7 @@ async function preInstall(input: GHAInputs) {
     const restoreKey = await restoreBinaryCache(
       installPath,
       input.ccacheBinaryKeyPrefix,
-      ccacheVersion.tag
+      ccacheVersion.version.version
     )
 
     if (restoreKey !== undefined) {
@@ -135,7 +135,7 @@ async function install(
         if (targetBinary) {
           return await downloadTool(
             targetBinary,
-            ccacheVersion.tag,
+            ccacheVersion.version,
             input.path,
             installPath
           )
@@ -197,7 +197,7 @@ async function postInstall(
         saveBinaryCache(
           installPath,
           input.ccacheBinaryKeyPrefix,
-          ccacheVersion.tag
+          ccacheVersion.version.version
         )
       )
     }
@@ -274,7 +274,7 @@ async function postAction(state: GHAStates) {
 
 async function downloadTool(
   binary: CCacheBinaryMetadata,
-  version: string,
+  version: semver.SemVer,
   downloadPath: string,
   installPath: string
 ): Promise<boolean> {

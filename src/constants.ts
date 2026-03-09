@@ -1,3 +1,5 @@
+import { SemVer } from "semver"
+
 export interface CCacheBinaryMatrix {
   [os: string]: CCacheBinaryVersionMatrix | undefined
   win32: CCacheBinaryVersionMatrix
@@ -8,9 +10,9 @@ export interface CCacheBinaryMatrix {
 export type CCacheBinaryVersionMatrix = Record<string, CCacheBinaryMetadata>
 
 export interface CCacheBinaryMetadata {
-  url: (version: string) => string
+  url: (version: SemVer) => string
   fileType: 'zip' | 'tar'
-  pathToBinary: (version: string) => string
+  pathToBinary: (version: SemVer) => string
 }
 
 export const CCACHE_REPOSITORY = 'https://github.com/ccache/ccache'
@@ -18,42 +20,42 @@ export const CCACHE_REPOSITORY = 'https://github.com/ccache/ccache'
 export const CCACHE_BINARY_SUPPORTED_URL: CCacheBinaryMatrix = {
   win32: {
     '>=4.6.1': {
-      url: (version: string) =>
-        `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-windows-x86_64.zip`,
+      url: (version: SemVer) =>
+        `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-x86_64.zip`,
       fileType: 'zip',
-      pathToBinary: (version: string) => `ccache-${version}-windows-x86_64`
+      pathToBinary: (version: SemVer) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-x86_64`
     },
 
     '>=3.7.8 <4.6.1': {
-      url: (version: string) =>
-        `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-windows-64.zip`,
+      url: (version: SemVer) =>
+        `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-64.zip`,
       fileType: 'zip',
-      pathToBinary: (version: string) => `ccache-${version}-windows-64`
+      pathToBinary: (version: SemVer) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-64`
     }
   },
 
   linux: {
     '>=4.13': {
-      url: (version: string) =>
-        `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-linux-x86_64-glibc.tar.xz`,
+      url: (version: SemVer) =>
+        `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64-glibc.tar.xz`,
       fileType: 'tar',
-      pathToBinary: (version: string) => `ccache-${version}-linux-x86_64-glibc`
+      pathToBinary: (version: SemVer) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64-glibc`
     },
 
     '>=4.6.1 <4.13': {
-      url: (version: string) =>
-        `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-linux-x86_64.tar.xz`,
+      url: (version: SemVer) =>
+        `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64.tar.xz`,
       fileType: 'tar',
-      pathToBinary: (version: string) => `ccache-${version}-linux-x86_64`
+      pathToBinary: (version: SemVer) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64`
     }
   },
 
   darwin: {
     '>=4.8': {
-      url: (version: string) =>
-        `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-darwin.tar.gz`,
+      url: (version: SemVer) =>
+        `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-darwin.tar.gz`,
       fileType: 'tar',
-      pathToBinary: (version: string) => `ccache-${version}-darwin`
+      pathToBinary: (version: SemVer) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-darwin`
     }
   }
 }

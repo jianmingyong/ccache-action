@@ -79939,33 +79939,33 @@ const CCACHE_REPOSITORY = 'https://github.com/ccache/ccache';
 const CCACHE_BINARY_SUPPORTED_URL = {
     win32: {
         '>=4.6.1': {
-            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-windows-x86_64.zip`,
+            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-x86_64.zip`,
             fileType: 'zip',
-            pathToBinary: (version) => `ccache-${version}-windows-x86_64`
+            pathToBinary: (version) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-x86_64`
         },
         '>=3.7.8 <4.6.1': {
-            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-windows-64.zip`,
+            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-64.zip`,
             fileType: 'zip',
-            pathToBinary: (version) => `ccache-${version}-windows-64`
+            pathToBinary: (version) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-windows-64`
         }
     },
     linux: {
         '>=4.13': {
-            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-linux-x86_64-glibc.tar.xz`,
+            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64-glibc.tar.xz`,
             fileType: 'tar',
-            pathToBinary: (version) => `ccache-${version}-linux-x86_64-glibc`
+            pathToBinary: (version) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64-glibc`
         },
         '>=4.6.1 <4.13': {
-            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-linux-x86_64.tar.xz`,
+            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64.tar.xz`,
             fileType: 'tar',
-            pathToBinary: (version) => `ccache-${version}-linux-x86_64`
+            pathToBinary: (version) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-linux-x86_64`
         }
     },
     darwin: {
         '>=4.8': {
-            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version}/ccache-${version}-darwin.tar.gz`,
+            url: (version) => `https://github.com/ccache/ccache/releases/download/v${version.patch == 0 ? version.major + '.' + version.minor : version.version}/ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-darwin.tar.gz`,
             fileType: 'tar',
-            pathToBinary: (version) => `ccache-${version}-darwin`
+            pathToBinary: (version) => `ccache-${version.patch == 0 ? version.major + '.' + version.minor : version.version}-darwin`
         }
     }
 };
@@ -80297,7 +80297,7 @@ async function preInstall(input) {
     });
     const installPath = path.join(input.path, 'install', 'bin');
     const cacheHit = await group('Restore Binary Cache', async () => {
-        const restoreKey = await restoreBinaryCache(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.tag);
+        const restoreKey = await restoreBinaryCache(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version);
         if (restoreKey !== undefined) {
             info(`Restored binary cache with key: ${restoreKey}`);
         }
@@ -80325,7 +80325,7 @@ async function install(input, ccacheVersion, installPath) {
                     }
                 }
                 if (targetBinary) {
-                    return await downloadTool(targetBinary, ccacheVersion.tag, input.path, installPath);
+                    return await downloadTool(targetBinary, ccacheVersion.version, input.path, installPath);
                 }
             }
             return false;
@@ -80360,7 +80360,7 @@ async function postInstall(input, ccacheVersion, installPath, saveCache) {
             setOutput('ccache-binary-path', path.join(installPath, 'ccache'));
         }
         if (saveCache) {
-            await group('Save Binary Cache', () => saveBinaryCache(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.tag));
+            await group('Save Binary Cache', () => saveBinaryCache(installPath, input.ccacheBinaryKeyPrefix, ccacheVersion.version.version));
         }
         return true;
     }

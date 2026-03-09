@@ -80320,7 +80320,7 @@ async function install(input, ccacheVersion, installPath) {
                     }
                 }
                 if (targetBinary) {
-                    return await downloadTool(targetBinary, ccacheVersion.version.version, input.path, installPath);
+                    return await downloadTool(targetBinary, ccacheVersion.tag, input.path, installPath);
                 }
             }
             return false;

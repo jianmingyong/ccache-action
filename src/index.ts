@@ -135,7 +135,7 @@ async function install(
         if (targetBinary) {
           return await downloadTool(
             targetBinary,
-            ccacheVersion.version.version,
+            ccacheVersion.tag,
             input.path,
             installPath
           )

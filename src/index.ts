@@ -13,17 +13,17 @@ import {
   restoreCache,
   saveCache,
   deleteCache
-} from './cache-helper'
-import { showVersion, showStats } from './ccache-helper'
-import { CMakeHelper } from './cmake-helper'
+} from './cache-helper.js'
+import { showVersion, showStats } from './ccache-helper.js'
+import { CMakeHelper } from './cmake-helper.js'
 import {
   type CCacheBinaryMetadata,
   CCACHE_BINARY_SUPPORTED_URL
-} from './constants'
-import * as git from './git-helper'
-import { hashFiles } from './hash-helper'
-import { getInputs, type GHAInputs } from './input-helper'
-import { findVersion, type CCacheVersion } from './utils'
+} from './constants.js'
+import * as git from './git-helper.js'
+import { hashFiles } from './hash-helper.js'
+import { getInputs, type GHAInputs } from './input-helper.js'
+import { findVersion, type CCacheVersion } from './utils.js'
 
 interface GHAStates {
   ccacheKeyPrefix: string

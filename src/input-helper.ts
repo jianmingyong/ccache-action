@@ -4,7 +4,7 @@ import * as process from 'process'
 import * as core from '@actions/core'
 import * as semver from 'semver'
 
-import { directoryExists } from './fs-helper'
+import { directoryExists } from './fs-helper.js'
 
 export interface GHAInputs {
   path: string

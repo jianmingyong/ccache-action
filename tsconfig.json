@@ -7,13 +7,14 @@
   ],
 
   "compilerOptions": {
-    "rootDir": "./src",
-    "baseUrl": "./",
-    "sourceMap": true,
-    "outDir": "./dist",
+    "isolatedModules": true,
+    "newLine": "lf",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "noImplicitAny": true,
-    "newLine": "lf"
+    "outDir": "./dist"
   },
 
-  "exclude": ["./dist", "./node_modules", "./__tests__", "./coverage"]
+  "include": ["src"],
+  "exclude": ["__tests__", "coverage", "dist", "node_modules"]
 }

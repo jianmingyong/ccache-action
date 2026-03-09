@@ -1,6 +1,6 @@
 import { exec, getExecOutput } from '@actions/exec'
 
-import { CCACHE_REPOSITORY } from './constants'
+import { CCACHE_REPOSITORY } from './constants.js'
 
 export function clone(path: string): Promise<number> {
   return exec('git clone', [

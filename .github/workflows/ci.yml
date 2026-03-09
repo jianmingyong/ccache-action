@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: CodeQL
 
 on:
   pull_request:
@@ -7,62 +7,43 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: '31 7 * * 3'
 
 permissions:
+  actions: read
+  checks: write
   contents: read
+  security-events: write
 
 jobs:
-  test-typescript:
-    name: TypeScript Tests
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        id: setup-node
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: .node-version
-          cache: npm
-
-      - name: Install Dependencies
-        id: npm-ci
-        run: npm ci
-
-      - name: Check Format
-        id: npm-format-check
-        run: npm run format:check
-
-      - name: Lint
-        id: npm-lint
-        run: npm run lint
-
-      - name: Test
-        id: npm-ci-test
-        run: npm run ci-test
-
-  test-action:
-    name: GitHub Actions Test
-    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: ['windows-latest', 'ubuntu-latest', 'macos-13']
-
-    permissions:
-      actions: write
+        language:
+          - typescript
 
     steps:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v6
 
-      - name: Test Local Action
-        uses: ./
+      - name: Initialize CodeQL
+        id: initialize
+        uses: github/codeql-action/init@v4
         with:
-          ccache-key-prefix: ccache_cache_${{ runner.os }}
-          max-size: 150M
+          config-file: .github/codeql/codeql-config.yml
+          languages: ${{ matrix.language }}
+          source-root: src
+
+      - name: Autobuild
+        id: autobuild
+        uses: github/codeql-action/autobuild@v4
+
+      - name: Perform CodeQL Analysis
+        id: analyze
+        uses: github/codeql-action/analyze@v4

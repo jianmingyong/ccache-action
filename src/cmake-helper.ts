@@ -4,7 +4,7 @@ import * as process from 'process'
 import { exec, getExecOutput } from '@actions/exec'
 import * as io from '@actions/io'
 
-import { CCACHE_CONFIGURE_OPTIONS } from './constants'
+import { CCACHE_CONFIGURE_OPTIONS } from './constants.js'
 
 export class CMakeHelper {
   private workdir: string

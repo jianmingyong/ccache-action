@@ -23,7 +23,7 @@ permissions:
 jobs:
   check-dist:
     name: Check dist/
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -53,6 +53,7 @@ jobs:
       # expected.
       - name: Compare Directories
         id: diff
+        shell: bash
         run: |
           if [ ! -d dist/ ]; then
             echo "Expected dist/ directory does not exist.  See status below:"
